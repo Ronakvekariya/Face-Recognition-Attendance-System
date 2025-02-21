@@ -16,7 +16,7 @@ class DatabaseEmebeddingsInsert:
         To open the json embeddings file and return it
         """
         with open(self.embeddings_file_path , "r") as f:
-            embeddings = json.load(f);
+            embeddings = json.load(f)
         return embeddings
 
     def InsertEmbeddings(self):
@@ -32,7 +32,7 @@ class DatabaseEmebeddingsInsert:
         contact = input("Enter the contact")
         position = input("Enter the position")
         gender = input("Enter your gender")
-        image_path = input("Enter the image path")
+        # image_path = input("Enter the image path")
 
         embeddings_data = self.OpenEmbeddings()
         self.cursor = self.connection.cursor(buffered=True)
@@ -48,11 +48,16 @@ class DatabaseEmebeddingsInsert:
             print(folder)
             if folder == first_name:
                 print("\n name is found")
+                image_path = os.path.join(self.face_folder_path , folder , "image1.jpg")
                 flag = 1
                 try:
                     with open(image_path, 'rb') as file:
                         binary_data = file.read()
                 except Exception as e:
+                    image_path = image_path.replace(".jpg" , ".png")
+                    print(image_path)
+                    with open(image_path, 'rb') as file:
+                        binary_data = file.read()
                     print(f"Error in reading the image : {e}")
                 if os.path.isdir(os.path.join("./sample_data" , folder)):
                     for image in os.listdir(os.path.join("./sample_data" , folder)):

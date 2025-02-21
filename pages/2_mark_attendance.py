@@ -1,0 +1,53 @@
+import streamlit as st
+from PIL import Image
+from AttendanceMark import AttendanceMark
+
+if "employee_id" not in st.session_state:
+    st.session_state.employee_id = None
+if "connection" not in st.session_state:
+    st.session_state.connection = None
+if "system" not in st.session_state:
+    st.session_state.system = None
+
+system = None
+
+def mark_attendance():
+    st.title("Mark Attendance")
+    
+    if st.button("Capture Image"):
+        system = AttendanceMark()
+        st.session_state.system = system
+        st.write("Recognizing...")
+        RetVal = system.MarkAttendance()
+        st.session_state.employee_id = RetVal[0]
+        st.session_state.connection = RetVal[1]
+        # st.success(f"Attendance marked for Employee ID: {RetVal[0]}")
+        st.title("Result")
+
+if __name__ == "__main__":
+    mark_attendance()
+    if st.session_state.employee_id is not None:        
+        st.write("Attendance marked for the following employees")
+        EmployeeId = st.session_state.employee_id
+        for emp_id in EmployeeId:
+            if emp_id[0] == "Unknown":
+                st.write(f"Unknown face detected")
+            else:
+                st.write(f"Employee Name: {emp_id[0]}      Employee ID: {emp_id[1]}")
+        
+        image = Image.open("result.jpg")
+        st.image(image, caption="RESULT", use_container_width =True)
+
+        for emp_id in EmployeeId:
+            if emp_id[0] == "Unknown":
+                st.write(f"Unknown face detected")
+                Count = st.session_state.system.UnknownFace(emp_id[2][0]["embedding"])
+
+                if Count > 0:
+                    message =  f"The Unknown face has seen for {Count} times in Tech Elecon" 
+                else:
+                    message =  "The Unknown face has not seen in Tech Elecon , It is the First time visiting"
+                
+                # image = Image.open(emp_id[3])
+                image = Image.fromarray(emp_id[3])
+                st.image(image, caption=message, use_container_width =True)
