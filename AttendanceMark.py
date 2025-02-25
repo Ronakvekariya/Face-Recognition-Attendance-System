@@ -79,6 +79,7 @@ class AttendanceMark:
             self.connection.commit()
         else:
             for face in faces:
+                count = count + 1
                 if type(face)!= str and face[0] != "Unknown":
                     EmployeeId.append([ face[0] , face[3] , face[4] , None])
                     query = f"SELECT * FROM employee WHERE id = {face[3]}"
@@ -189,9 +190,36 @@ class AttendanceMark:
                         query = "insert into log_table (id , timestamp, problem_type , image , detail, face_embedding) values (%s, %s, %s, %s, %s)"
                         self.cursor.execute(query, (NumOfRows + 1, datetime.now(), "Error", binary_data, face, '{}'))
                         self.connection.commit()
+        
+        date = datetime.now().strftime('%Y-%m-%d')
+        # Query to get date from the database
+        query = "SELECT count_employee , date FROM current_employee_counter"
+        self.cursor.execute(query)
+        result = self.cursor.fetchone()
+        count = 0
+
+        if result:
+            count = result[0]
+            db_date = result[1].strftime('%Y-%m-%d')  # Convert database date to string
+            print(f"Database Date: {db_date}")
+            print(f"Current Date: {date}")
+
+
+            if db_date == date:
+                query = "UPDATE current_employee_counter SET count_employee = count_employee + 1 WHERE id = 1;"             
+                self.cursor.execute(query)
+                self.connection.commit()
+                count = result[0] + 1
+            else:
+                query = f"UPDATE current_employee_counter SET count_employee = 0 , date = {date} WHERE id = 1;"
+                self.cursor.execute(query)
+                self.connection.commit()
+                count = 0
+        else:
+            print("No records found in the database.")
 
         self.cursor.close()
-        return [EmployeeId , self.connection]
+        return [EmployeeId , self.connection , count]
 
                     
 

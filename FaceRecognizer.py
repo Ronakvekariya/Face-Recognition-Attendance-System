@@ -73,12 +73,10 @@ class Recongnizer:
                     recognized_name = "Unknown"
 
                     for key1 in self.embeddings:
-                        print(key1)
                         for key2 in self.embeddings[key1]:
                             for index in range(len(self.embeddings[key1]["embeddings"])):
                                 stored_embedding = self.embeddings[key1]["embeddings"][index]
                                 distance = cosine(test_embeddings[0]["embedding"], stored_embedding)
-                                print(distance)
                                 if distance < min_distance:
                                     min_distance = distance
                                     recognized_name = key1 if distance <= threshold else "Unknown"

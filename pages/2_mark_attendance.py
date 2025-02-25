@@ -8,6 +8,8 @@ if "connection" not in st.session_state:
     st.session_state.connection = None
 if "system" not in st.session_state:
     st.session_state.system = None
+if "Count_Employee" not in st.session_state:
+    st.session_state.count_employee = None
 
 system = None
 
@@ -21,6 +23,7 @@ def mark_attendance():
         RetVal = system.MarkAttendance()
         st.session_state.employee_id = RetVal[0]
         st.session_state.connection = RetVal[1]
+        st.session_state.count_employee = RetVal[2]
         # st.success(f"Attendance marked for Employee ID: {RetVal[0]}")
         st.title("Result")
 
@@ -28,6 +31,7 @@ if __name__ == "__main__":
     mark_attendance()
     if st.session_state.employee_id is not None:        
         st.write("Attendance marked for the following employees")
+        st.write("Current count of On-Premise Employees are : " , st.session_state.count_employee)
         EmployeeId = st.session_state.employee_id
         for emp_id in EmployeeId:
             if emp_id[0] == "Unknown":
