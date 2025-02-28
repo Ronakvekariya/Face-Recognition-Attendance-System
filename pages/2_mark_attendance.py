@@ -9,7 +9,7 @@ if "connection" not in st.session_state:
 if "system" not in st.session_state:
     st.session_state.system = None
 if "Count_Employee" not in st.session_state:
-    st.session_state.count_employee = None
+    st.session_state.count_employee = 0
 
 system = None
 
@@ -26,6 +26,14 @@ def mark_attendance():
         st.session_state.count_employee = RetVal[2]
         # st.success(f"Attendance marked for Employee ID: {RetVal[0]}")
         st.title("Result")
+
+def CountingUnknownFace(embeddings):
+    system = AttendanceMark()
+    answer = system.UnknownFace(embeddings=embeddings)
+    if answer[0] == True:
+        return answer[1]
+    else:
+        return 0
 
 if __name__ == "__main__":
     mark_attendance()
@@ -45,7 +53,7 @@ if __name__ == "__main__":
         for emp_id in EmployeeId:
             if emp_id[0] == "Unknown":
                 st.write(f"Unknown face detected")
-                Count = st.session_state.system.UnknownFace(emp_id[2][0]["embedding"])
+                Count = st.session_state.system.UnknownFace(embeddings = emp_id[2][0]["embedding"])
 
                 if Count > 0:
                     message =  f"The Unknown face has seen for {Count} times in Tech Elecon" 

@@ -51,8 +51,7 @@ class AttendanceMark:
                     distance = cosine(embeddings, temp['embedding'])
                     if distance < min_distance:
                         min_distance = distance
-                        if distance < 0.5:
-                            Count += 1
+                        Count += 1
             
             return [True , Count]
         else:
@@ -62,6 +61,7 @@ class AttendanceMark:
 
     def MarkAttendance(self):
         EmployeeId = []
+        count = 0
         print("Running demo method")
         rec = Recongnizer()
         faces = rec.InAction()
@@ -211,10 +211,11 @@ class AttendanceMark:
                 self.connection.commit()
                 count = result[0] + 1
             else:
-                query = f"UPDATE current_employee_counter SET count_employee = 0 , date = {date} WHERE id = 1;"
-                self.cursor.execute(query)
+                query = "UPDATE current_employee_counter SET count_employee = %s, date = %s WHERE id = %s"
+                values = (1, date, 1)
+                self.cursor.execute(query , values)
                 self.connection.commit()
-                count = 0
+                count = 1
         else:
             print("No records found in the database.")
 
