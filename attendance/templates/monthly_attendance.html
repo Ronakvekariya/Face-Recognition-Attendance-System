@@ -27,17 +27,21 @@
         <tr>
           <th>Date</th>
           <th>Status</th>
+          <th>InTime</th>
+          <th>OutTime</th>
         </tr>
       </thead>
       <tbody>
-        {% for record in attendance_data %}
+        {% for date , details in attendance_data.items %}
           <tr>
-            <td>{{ record.date }}</td>
-            <td>{{ record.status }}</td>
+            <td>{{ date }}</td>
+            <td>{{ details.status }}</td>
+            <td>{{ details.InTime }}</td>
+            <td>{{ details.OutTime }}</td>
           </tr>
         {% empty %}
           <tr>
-            <td colspan="2">No attendance data available.</td>
+            <td colspan="4">No attendance data available.</td>
           </tr>
         {% endfor %}
       </tbody>

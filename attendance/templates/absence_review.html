@@ -4,6 +4,33 @@
   <meta charset="UTF-8">
   <title>Absence Review</title>
   <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+  <style>
+    body {
+        font-family: Arial, sans-serif;
+    }
+    .dropdown-container {
+        margin: 20px;
+    }
+    select {
+        padding: 10px;
+        font-size: 16px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        width: 200px;
+    }
+    select:focus {
+        border-color: #007BFF;
+        box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+    }
+    .message {
+        margin-top: 20px;
+        padding: 10px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        background-color: #f8f9fa;
+        color: red;
+    }
+</style>
 </head>
 <body>
   <nav class="navbar navbar-expand-lg navbar-light bg-light">
@@ -21,10 +48,15 @@
   </nav>
   <div class="container mt-4">
     <h2>Submit Absence Review</h2>
-    <form method="post">
+    {% if message%}
+      <div class = "message">
+        {{ message }}
+      </div>
+    {% endif %}
+    <form method="post" , action="{% url 'absence_review' %}">
       {% csrf_token %}
       <div class="form-group">
-        <label for="id_date">Absent Date</label>
+        <label for="options">Absent Date</label>
         {{ form.date }}
       </div>
       <div class="form-group">
