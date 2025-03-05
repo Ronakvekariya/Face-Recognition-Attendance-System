@@ -93,6 +93,7 @@ def AnalysisResult():
                 if details["InTime"]:
                         if len(details["InTime"]) >= 1:
                                 intime = details["InTime"][0]
+                                
                                 NumberOfTime = len(details["InTime"])
                         else:
                                 intime = None
