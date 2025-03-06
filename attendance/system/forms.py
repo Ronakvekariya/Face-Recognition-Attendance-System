@@ -2,7 +2,7 @@ from django import forms
 # from .models import AbsenceReview
 
 class LoginForm(forms.Form):
-    EmployeeId = forms.CharField(max_length=150)
+    Id = forms.CharField(max_length=150)
     username = forms.CharField(max_length=150)
     password = forms.CharField(widget=forms.PasswordInput)
 

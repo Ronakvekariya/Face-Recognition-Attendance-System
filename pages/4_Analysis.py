@@ -134,7 +134,7 @@ if __name__ == "__main__" :
     print("\n\n\n\n")
             
 
-    temp = dict(sorted(per_date_emp_attendance.items(), key=lambda x: datetime.strptime(x[0], "%Y-%m-%d")))
+    temp = dict(sorted(per_date_emp_attendance.items(), key=lambda x: datetime.strftime(x[0], "%Y-%m-%d")))
 
             
     for date , details in temp.items():

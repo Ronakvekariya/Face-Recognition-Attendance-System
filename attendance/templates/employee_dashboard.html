@@ -3,13 +3,18 @@
 <head>
   <meta charset="UTF-8">
   <title>Employee Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Bootstrap CSS for modern, responsive design -->
   <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+  <!-- Chart.js Library -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
   <nav class="navbar navbar-expand-lg navbar-light bg-light">
-    <a class="navbar-brand" href="#">Employee Dashboard</a>
+    <a class="navbar-brand" href="{% url 'employee_dashboard' %}">Dashboard</a>
     <div class="collapse navbar-collapse">
       <ul class="navbar-nav ml-auto">
+        <!-- Add other navigation links if necessary -->
         <li class="nav-item">
           <a class="nav-link" href="{% url 'monthly_attendance' %}">Monthly Attendance</a>
         </li>
@@ -22,9 +27,156 @@
       </ul>
     </div>
   </nav>
+  
   <div class="container mt-4">
-    <h1>Welcome, Employee!</h1>
-    <p>Use the navigation bar to view your attendance or submit an absence review.</p>
+    <h2>Employee Dashboard</h2>
+    
+    <!-- Date Filter Section -->
+    <div class="card mb-4">
+      <div class="card-header">
+        Filter by Date Range
+      </div>
+      <div class="card-body">
+        <form id="filterForm">
+          <div class="form-row">
+            <div class="col-md-5 mb-3">
+              <label for="startDate">Start Date</label>
+              <input type="date" class="form-control" id="startDate" name="startDate">
+            </div>
+            <div class="col-md-5 mb-3">
+              <label for="endDate">End Date</label>
+              <input type="date" class="form-control" id="endDate" name="endDate">
+            </div>
+            <div class="col-md-2 mb-3 align-self-end">
+              <button type="button" class="btn btn-primary btn-block" onclick="updateDashboard()">Update</button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+    
+    <!-- Attendance Trends Chart -->
+    <div class="card mb-4">
+      <div class="card-header">
+        Attendance Trends
+      </div>
+      <div class="card-body">
+        <canvas id="attendanceChart"></canvas>
+      </div>
+    </div>
+    
+    <!-- Leave Patterns Chart -->
+    <div class="card mb-4">
+      <div class="card-header">
+        Leave Patterns (Leaves Taken per Month)
+      </div>
+      <div class="card-body">
+        <canvas id="leaveChart"></canvas>
+      </div>
+    </div>
+    
+    <!-- Additional Dashboard Elements Placeholder -->
+    <div class="card">
+      <div class="card-header">
+        Additional Analysis
+      </div>
+      <div class="card-body">
+        <p>This section can display further analysis and insights. Replace this with your own content and logic.</p>
+      </div>
+    </div>
   </div>
+  
+  <!-- jQuery, Popper.js, and Bootstrap JS -->
+  <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+  
+  <!-- JavaScript for Chart Rendering and Dynamic Updates -->
+  <script>
+    // Parse context variables passed from Django (placeholders for now)
+    const attendanceLabels = JSON.parse('{{ attendance_labels|escapejs }}');
+    const attendanceData = JSON.parse('{{ attendance_data|escapejs }}');
+    const leaveLabels = JSON.parse('{{ leave_labels|escapejs }}');
+    const leaveData = JSON.parse('{{ leave_data|escapejs }}');
+
+    // Create Attendance Trends Chart (Line Chart)
+    const attendanceCtx = document.getElementById('attendanceChart').getContext('2d');
+    let attendanceChart = new Chart(attendanceCtx, {
+      type: 'line',
+      data: {
+        labels: attendanceLabels,
+        datasets: [{
+          label: 'Attendance (1=Present, 0=Absent)',
+          data: attendanceData,
+          backgroundColor: 'rgba(54, 162, 235, 0.2)',
+          borderColor: 'rgba(54, 162, 235, 1)',
+          borderWidth: 2,
+          fill: true,
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false
+      }
+    });
+
+    // Create Leave Patterns Chart (Bar Chart)
+    const leaveCtx = document.getElementById('leaveChart').getContext('2d');
+    let leaveChart = new Chart(leaveCtx, {
+      type: 'bar',
+      data: {
+        labels: leaveLabels,
+        datasets: [{
+          label: 'Number of Leaves',
+          data: leaveData,
+          backgroundColor: 'rgba(255, 99, 132, 0.2)',
+          borderColor: 'rgba(255, 99, 132, 1)',
+          borderWidth: 1
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+          y: {
+            beginAtZero: true,
+            precision: 0
+          }
+        }
+      }
+    });
+
+    // Function to update the dashboard based on the selected date range.
+    // This is a placeholder; implement AJAX or dynamic updates as needed.
+    function updateDashboard() {
+      const startDate = document.getElementById('startDate').value;
+      const endDate = document.getElementById('endDate').value;
+      
+      // You can perform an AJAX request here to fetch updated data.
+      // For example:
+      // $.ajax({
+      //   url: '/employee/dashboard-data/',
+      //   data: { startDate, endDate },
+      //   success: function(response) {
+      //     // Update your charts with the new data:
+      //     attendanceChart.data.labels = response.attendance_labels;
+      //     attendanceChart.data.datasets[0].data = response.attendance_data;
+      //     attendanceChart.update();
+      //
+      //     leaveChart.data.labels = response.leave_labels;
+      //     leaveChart.data.datasets[0].data = response.leave_data;
+      //     leaveChart.update();
+      //   }
+      // });
+
+      // For now, simply log the selected dates.
+      console.log("Selected Date Range:", startDate, endDate);
+      
+      // Optionally, update charts with new static data as a placeholder.
+      // attendanceChart.data.labels = ["New Label 1", "New Label 2"];
+      // attendanceChart.data.datasets[0].data = [1, 0];
+      // attendanceChart.update();
+    }
+  </script>
 </body>
 </html>
