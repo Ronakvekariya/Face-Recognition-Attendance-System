@@ -5,32 +5,20 @@
   <title>Absence Review</title>
   <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
   <style>
-    body {
-        font-family: Arial, sans-serif;
-    }
-    .dropdown-container {
-        margin: 20px;
-    }
+    body { font-family: Arial, sans-serif; }
+    .dropdown-container { margin: 20px; }
     select {
-        padding: 10px;
-        font-size: 16px;
-        border: 1px solid #ccc;
-        border-radius: 4px;
-        width: 200px;
+      padding: 10px; font-size: 16px; border: 1px solid #ccc;
+      border-radius: 4px; width: 200px;
     }
     select:focus {
-        border-color: #007BFF;
-        box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+      border-color: #007BFF; box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
     }
     .message {
-        margin-top: 20px;
-        padding: 10px;
-        border: 1px solid #ccc;
-        border-radius: 4px;
-        background-color: #f8f9fa;
-        color: red;
+      margin-top: 20px; padding: 10px; border: 1px solid #ccc;
+      border-radius: 4px; background-color: #f8f9fa; color: red;
     }
-</style>
+  </style>
 </head>
 <body>
   <nav class="navbar navbar-expand-lg navbar-light bg-light">
@@ -46,25 +34,52 @@
       </ul>
     </div>
   </nav>
+  
   <div class="container mt-4">
     <h2>Submit Absence Review</h2>
-    {% if message%}
-      <div class = "message">
+
+    <!-- Month Selection Form -->
+    <form method="POST" class="form-inline mb-4" action="{% url 'absence_review' %}">
+      {% csrf_token %}
+      <label class="mr-2" for="month">Select Month:</label>
+      <select id="month" name="month" class="form-control mr-2" required>
+        <option value="">-- Select a month --</option>
+        {% for month in months %}
+          <option value="{{ month }}" {% if month == selected_month %}selected{% endif %}>
+            {{ month }}
+          </option>
+        {% endfor %}
+      </select>
+      <button type="submit" class="btn btn-primary">Show Absence Dates</button>
+    </form>
+
+    {% if message %}
+      <div class="message">
         {{ message }}
       </div>
     {% endif %}
-    <form method="post" , action="{% url 'absence_review' %}">
-      {% csrf_token %}
+
+    <!-- Absence Review Form (shown only if a month is selected) -->
+    {% if selected_month %}
+      <form method="post" action="{% url 'absence_review' %}">
+        {% csrf_token %}
+        <!-- Hidden field to pass the selected month to the view -->
+        <input type="hidden" name="selected_month" value="{{ selected_month }}">
+        <div class="form-group">
+          <label for="options">Absent Date</label>
+          {{ form.date }}
+        </div>
+        <div class="form-group">
+          <label for="id_explanation">Explanation</label>
+          {{ form.explanation }}
+        </div>
+        <button type="submit" class="btn btn-primary">Submit Review</button>
+      </form>
+    {% else %}
       <div class="form-group">
-        <label for="options">Absent Date</label>
-        {{ form.date }}
+        <h3>Kindly first select the month</h3>
       </div>
-      <div class="form-group">
-        <label for="id_explanation">Explanation</label>
-        {{ form.explanation }}
-      </div>
-      <button type="submit" class="btn btn-primary">Submit Review</button>
-    </form>
+    {% endif %}
   </div>
 </body>
 </html>

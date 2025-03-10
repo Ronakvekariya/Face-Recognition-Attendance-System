@@ -15,3 +15,12 @@ class AbsenceReviewForm(forms.Form):
         label="Explanation"
     )
 
+
+class SelectMonthForm(forms.Form):
+    month = forms.ChoiceField(choices=[], widget=forms.Select(attrs={'class': 'form-control'}))
+
+    def __init__(self, *args, **kwargs):
+        months = kwargs.pop('months', [])  # Get months from view
+        super().__init__(*args, **kwargs)
+        self.fields['month'].choices = [(m, m) for m in months]
+
