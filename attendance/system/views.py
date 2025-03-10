@@ -3,7 +3,7 @@ from django.http import HttpResponse, JsonResponse
 from django.db import connection
 from .forms import LoginForm , AbsenceReviewForm , SelectMonthForm
 # from .models import AbsenceReview
-from datetime import datetime
+from datetime import datetime , date
 import calendar
 import json
 
@@ -60,6 +60,9 @@ def employee_dashboard(request):
                 sorted_dates = sorted(dates)
                 start_date = sorted_dates[0]
                 end_date = sorted_dates[-1]
+
+                request.session['start-date'] = start_date
+                request.session['end-date'] = end_date
                 
 
                 start_date_object = datetime.strptime(start_date, '%Y-%m-%d')
@@ -390,3 +393,63 @@ def monthly_attendance(request):
 #         'leave_data': dummy_leave_data,
 #     }
 #     return render(request, 'employee_dashboard.html', context)
+
+
+def dashboard_data(request):
+    # Retrieve start and end date strings from the GET parameters
+    start_date_str = request.GET.get('startDate')
+    end_date_str = request.GET.get('endDate')
+    message = ''
+
+    # Convert the date strings to date objects (if provided)
+    try:
+        start_date = datetime.strptime(start_date_str, '%Y-%m-%d').date() if start_date_str else None
+        end_date = datetime.strptime(end_date_str, '%Y-%m-%d').date() if end_date_str else None
+    except ValueError:
+        # If the date format is incorrect, return an error response
+        return JsonResponse({'error': 'Invalid date format. Please use YYYY-MM-DD.'}, status=400)
+    
+    
+    start_date_employee = datetime.strptime(request.session.get('start-date'), '%Y-%m-%d').date()
+    end_date_employee = datetime.strptime(request.session.get('end-date') , '%Y-%m-%d').date()
+
+    # Check if the end date is provided and greater than the current date
+    if end_date and end_date > end_date_employee:
+        message = f"End date is greater than the employee's last attendance. This is {end_date_employee} last attendance date"
+    elif start_date and start_date < start_date_employee:
+        message = f"Start date is less than employee's first attendance. This is {start_date_employee} first attendance date"
+
+    month_wise_attendance = request.session.get('month_wise_attendance' , {})
+    # Convert start and end dates to the correct format
+    start_date = datetime.strptime(f"{start_date_str}", "%Y-%m-%d")
+    end_date = datetime.strptime(f"{end_date_str}", "%Y-%m-%d")
+
+    attendance_data = []
+    attendance_labels = []
+
+    # Iterate through each month's data
+    for month_json in month_wise_attendance.values():
+        month_data = json.loads(month_json)
+        for date_str, details in month_data.items():
+            current_date = datetime.strptime(date_str, "%Y-%m-%d")
+            # Check if the date is within the specified range
+            if start_date <= current_date <= end_date:
+                status = details['status']
+                attendance_data.append(date_str)
+                if status == 'Holiday':
+                    continue
+                elif status == 'Absent':
+                    attendance_labels.append(0)
+                else:
+                    attendance_labels.append(1)
+                
+    
+    # For demonstration, we're just reading from session.
+    response_data = {
+        'attendance_labels': attendance_labels,
+        'attendance_data': attendance_data,
+        'leave_labels': request.session.get('leave_labels', []),
+        'leave_data': request.session.get('leave_data', []),
+        'message': message
+    }
+    return JsonResponse(response_data)
