@@ -374,27 +374,6 @@ def monthly_attendance(request):
     return render(request, 'monthly_attendance.html', context)
 
 
-
-# def employee_dashboard(request):
-#     # Placeholder data: Replace these with your actual logic.
-#     # For example, attendance trend data could be a series of dates and attendance status.
-#     dummy_attendance_labels = ["2025-01-01", "2025-01-02", "2025-01-03"]
-#     dummy_attendance_data = [1, 0, 1]  # Example: 1 for present, 0 for absent
-    
-#     # Leave patterns: Number of leaves taken each month.
-#     dummy_leave_labels = ["January", "February", "March", "April", "May", "June",
-#                           "July", "August", "September", "October", "November", "December"]
-#     dummy_leave_data = [2, 1, 0, 3, 1, 0, 2, 2, 1, 0, 1, 0]  # Example leave counts per month
-
-#     context = {
-#         'attendance_labels': dummy_attendance_labels,
-#         'attendance_data': dummy_attendance_data,
-#         'leave_labels': dummy_leave_labels,
-#         'leave_data': dummy_leave_data,
-#     }
-#     return render(request, 'employee_dashboard.html', context)
-
-
 def dashboard_data(request):
     # Retrieve start and end date strings from the GET parameters
     start_date_str = request.GET.get('startDate')
@@ -420,12 +399,21 @@ def dashboard_data(request):
         message = f"Start date is less than employee's first attendance. This is {start_date_employee} first attendance date"
 
     month_wise_attendance = request.session.get('month_wise_attendance' , {})
+    month_wise_absence_dates =  request.session.get('month_wise_absence_dates' , {})
     # Convert start and end dates to the correct format
     start_date = datetime.strptime(f"{start_date_str}", "%Y-%m-%d")
     end_date = datetime.strptime(f"{end_date_str}", "%Y-%m-%d")
 
     attendance_data = []
     attendance_labels = []
+    leave_data = []
+    leave_labels = []
+
+    month_wise_absence_dates = request.session.get('month_wise_absence_dates' , {})
+
+    for month , details in month_wise_absence_dates.items():
+        leave_data.append(month)
+        leave_labels.append(len(details))
 
     # Iterate through each month's data
     for month_json in month_wise_attendance.values():
@@ -442,14 +430,13 @@ def dashboard_data(request):
                     attendance_labels.append(0)
                 else:
                     attendance_labels.append(1)
-                
     
     # For demonstration, we're just reading from session.
     response_data = {
         'attendance_labels': attendance_labels,
         'attendance_data': attendance_data,
-        'leave_labels': request.session.get('leave_labels', []),
-        'leave_data': request.session.get('leave_data', []),
+        'leave_labels': leave_labels,
+        'leave_data': leave_data , 
         'message': message
     }
     return JsonResponse(response_data)
