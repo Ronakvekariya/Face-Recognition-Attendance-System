@@ -261,6 +261,7 @@ def absence_review(request):
                 print("form is valid")
                 date = absence_form.cleaned_data['date']
                 explanation = absence_form.cleaned_data['explanation']
+                leave_type = absence_form.cleaned_data['leave_type']
 
                 if datetime.strptime(date, "%Y-%m-%d") > datetime.today():
                     message = "You cannot submit a review for a future date."
@@ -276,8 +277,8 @@ def absence_review(request):
                             message = "You have already submitted an explanation for this date."
                         else:
                             cursor.execute(
-                                "INSERT INTO absence_review (employee_id, date, explanation, status) VALUES (%s, %s, %s, %s)",
-                                [employee_id, date, explanation, "pending"]
+                                "INSERT INTO absence_review (employee_id, date, explanation, status , leave_type) VALUES (%s, %s, %s, %s, %s)",
+                                [employee_id, date, explanation, "pending", leave_type]
                             )
                             connection.commit()
                             return redirect('employee_dashboard')
