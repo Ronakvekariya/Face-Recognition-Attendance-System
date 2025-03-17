@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import login_view, logout_view, hr_dashboard, employee_dashboard,monthly_attendance,absence_review , get_attendance , dashboard_data , user_management , delete_user , AddUser
+from .views import login_view, logout_view, hr_dashboard, employee_dashboard,monthly_attendance,absence_review , get_attendance , dashboard_data , user_management , delete_user , add_user
 
 urlpatterns = [
     path('', login_view, name='login'),
@@ -12,5 +12,5 @@ urlpatterns = [
     path('employee-dashboard/dashboard-data/', dashboard_data, name='dashboard_data'),
     path('hr-dashboard/user-management/', user_management, name='user_management'),
     path('hr-dashboard/user-management/delete-user', delete_user, name='delete_user'),
-    path('hr-dashboard/user-management/add-user', AddUser, name='add_user'),
+    path('hr-dashboard/user-management/add-user', add_user, name='add_user'),
 ]

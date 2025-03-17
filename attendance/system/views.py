@@ -1,9 +1,8 @@
 from django.shortcuts import render, redirect
 from django.http import HttpResponse, JsonResponse
 from django.db import connection
-from .forms import LoginForm , AbsenceReviewForm , SelectMonthForm
-# from .models import AbsenceReview
-from datetime import datetime , date
+from .forms import LoginForm, AbsenceReviewForm, SelectMonthForm, AddUser
+from datetime import datetime, date
 import calendar
 import json
 
@@ -16,7 +15,7 @@ def login_view(request):
             password = form.cleaned_data['password']
 
             with connection.cursor() as cursor:
-                cursor.execute("SELECT role FROM system_user WHERE employee_id = %s AND username=%s AND password=%s", [Id , username, password])
+                cursor.execute("SELECT role FROM system_user WHERE employee_id = %s AND username=%s AND password=%s", [Id, username, password])
                 user = cursor.fetchone()
 
             if user:
@@ -48,8 +47,7 @@ def hr_dashboard(request):
 
 def employee_dashboard(request):
     if request.session.get('role') == 'Employee':
-     # Placeholder for attendance data. Add your logic to fetch data.
-        attendance_data = []  # You can replace this with your actual attendance logic.
+        attendance_data = []  # Placeholder for attendance data. Add your logic to fetch data.
         with connection.cursor() as cursor:
             cursor.execute("SELECT attendance FROM attendance_table where employee_id = %s", [request.session.get('Id')])
             result = cursor.fetchone()
@@ -63,13 +61,12 @@ def employee_dashboard(request):
 
                 request.session['start-date'] = start_date
                 request.session['end-date'] = end_date
-                
 
                 start_date_object = datetime.strptime(start_date, '%Y-%m-%d')
                 end_date_object = datetime.strptime(end_date, '%Y-%m-%d')
 
                 month_list = ["January", "February", "March", "April", "May", "June",
-                          "July", "August", "September", "October", "November", "December"]
+                              "July", "August", "September", "October", "November", "December"]
                 month_wise_attendance = {}
                 month_wise_extra_days = {}
                 month_wise_absence_dates = {}
@@ -77,85 +74,79 @@ def employee_dashboard(request):
 
                 extra_days = 0
                 saturday_counter = 0
-                attendance_data = {}                
+                attendance_data = {}
 
-                _, num_days = calendar.monthrange(start_date_object.year , start_date_object.month)
+                _, num_days = calendar.monthrange(start_date_object.year, start_date_object.month)
 
-                for day in range(start_date_object.day , num_days + 1):
+                for day in range(start_date_object.day, num_days + 1):
                     date_obj = datetime(start_date_object.year, start_date_object.month, day).date()
                     date_str = date_obj.strftime("%Y-%m-%d")
                     if date_obj.weekday() == 5:  # Saturday (Monday=0, ..., Saturday=5)
                         saturday_counter += 1
-                        # Mark only the 1st, 3rd, and 5th Saturdays as holiday
                         if saturday_counter in (1, 3, 5):
                             if date_str in dates:
-                                print("match found")
-                                attendance_data[date_str] = {"status" : "Present" , "InTime" : temp[date_str]["InTime"] , "OutTime" : temp[date_str]["OutTime"]}
+                                attendance_data[date_str] = {"status": "Present", "InTime": temp[date_str]["InTime"], "OutTime": temp[date_str]["OutTime"]}
                                 extra_days += 1
                             else:
-                                attendance_data[date_str] = {"status" : "Holiday" , "InTime" : "N/A" , "OutTime" : "N/A"}
+                                attendance_data[date_str] = {"status": "Holiday", "InTime": "N/A", "OutTime": "N/A"}
                         else:
                             if date_str in dates:                                
-                                attendance_data[date_str] = {"status" : "Present" , "InTime" : temp[date_str]["InTime"] , "OutTime" : temp[date_str]["OutTime"]}
+                                attendance_data[date_str] = {"status": "Present", "InTime": temp[date_str]["InTime"], "OutTime": temp[date_str]["OutTime"]}
                             else:
-                                attendance_data[date_str] = {"status" : "Absent" , "InTime" : "N/A" , "OutTime" : "N/A"}
+                                attendance_data[date_str] = {"status": "Absent", "InTime": "N/A", "OutTime": "N/A"}
                                 absence_dates.append(date_str)
                     elif date_obj.weekday() == 6:  # Sunday (Sunday=6)
                         if date_str in dates:
-                                attendance_data[date_str] = {"status" : "Present" , "InTime" : temp[date_str]["InTime"] , "OutTime" : temp[date_str]["OutTime"]}
-                                extra_days += 1
+                            attendance_data[date_str] = {"status": "Present", "InTime": temp[date_str]["InTime"], "OutTime": temp[date_str]["OutTime"]}
+                            extra_days += 1
                         else:
-                                attendance_data[date_str] = {"status" : "Holiday" , "InTime" : "N/A" , "OutTime" : "N/A"}
+                            attendance_data[date_str] = {"status": "Holiday", "InTime": "N/A", "OutTime": "N/A"}
                     else:
                         if date_str in dates:
-                            attendance_data[date_str] = {"status" : "Present" , "InTime" : temp[date_str]["InTime"] , "OutTime" : temp[date_str]["OutTime"]}
+                            attendance_data[date_str] = {"status": "Present", "InTime": temp[date_str]["InTime"], "OutTime": temp[date_str]["OutTime"]}
                         else:
-                            attendance_data[date_str] = {"status" : "Absent" , "InTime" : "N/A" , "OutTime" : "N/A"}
+                            attendance_data[date_str] = {"status": "Absent", "InTime": "N/A", "OutTime": "N/A"}
                             absence_dates.append(date_str)
-                        
-                
+
                 attendance_data = json.dumps(attendance_data)
                 month_wise_attendance[month_list[start_date_object.month - 1]] = attendance_data
                 month_wise_extra_days[month_list[start_date_object.month - 1]] = extra_days
                 month_wise_absence_dates[month_list[start_date_object.month - 1]] = absence_dates
 
                 absence_dates = []
-
                 extra_days = 0
-
                 attendance_data = {}
 
-                for month in range(start_date_object.month + 1 , end_date_object.month):
-                    _, num_days = calendar.monthrange(start_date_object.year , month)
-                    for day in range(1 , num_days + 1):
+                for month in range(start_date_object.month + 1, end_date_object.month):
+                    _, num_days = calendar.monthrange(start_date_object.year, month)
+                    for day in range(1, num_days + 1):
                         date_obj = datetime.date(start_date_object.year, month, day)
                         date_str = date_obj.strftime("%Y-%m-%d")
                         if date_obj.weekday() == 5:  # Saturday (Monday=0, ..., Saturday=5)
                             saturday_counter += 1
-                            # Mark only the 1st, 3rd, and 5th Saturdays as holiday
                             if saturday_counter in (1, 3, 5):
                                 if date_str in dates:
-                                    attendance_data[date_str] = {"status" : "Holiday" , "InTime" : temp[date_str]["InTime"] , "OutTime" : temp[date_str]["OutTime"]}
+                                    attendance_data[date_str] = {"status": "Holiday", "InTime": temp[date_str]["InTime"], "OutTime": temp[date_str]["OutTime"]}
                                     extra_days += 1
                                 else:
-                                    attendance_data[date_str] = {"status" : "Holiday" , "InTime" : "N/A" , "OutTime" : "N/A"}
+                                    attendance_data[date_str] = {"status": "Holiday", "InTime": "N/A", "OutTime": "N/A"}
                             else:
                                 if date_str in dates:                                
-                                    attendance_data[date_str] = {"status" : "Present" , "InTime" : temp[date_str]["InTime"] , "OutTime" : temp[date_str]["OutTime"]}
+                                    attendance_data[date_str] = {"status": "Present", "InTime": temp[date_str]["InTime"], "OutTime": temp[date_str]["OutTime"]}
                                 else:
-                                    attendance_data[date_str] = {"status" : "Absent" , "InTime" : "N/A" , "OutTime" : "N/A"}
+                                    attendance_data[date_str] = {"status": "Absent", "InTime": "N/A", "OutTime": "N/A"}
                                     absence_dates.append(date_str)
                         elif date_obj.weekday() == 6:  # Sunday (Sunday=6)
                             if date_str in dates:
-                                    attendance_data[date_str] = {"status" : "Holiday" , "InTime" : temp[date_str]["InTime"] , "OutTime" : temp[date_str]["OutTime"]}
+                                attendance_data[date_str] = {"status": "Holiday", "InTime": temp[date_str]["InTime"], "OutTime": temp[date_str]["OutTime"]}
                             else:
-                                    attendance_data[date_str] = {"status" : "Holiday" , "InTime" : "N/A" , "OutTime" : "N/A"}
+                                attendance_data[date_str] = {"status": "Holiday", "InTime": "N/A", "OutTime": "N/A"}
                         else:
                             if date_str in dates:
-                                attendance_data[date_str] = {"status" : "Present" , "InTime" : temp[date_str]["InTime"] , "OutTime" : temp[date_str]["OutTime"]}
+                                attendance_data[date_str] = {"status": "Present", "InTime": temp[date_str]["InTime"], "OutTime": temp[date_str]["OutTime"]}
                                 extra_days += 1
                             else:
-                                attendance_data[date_str] = {"status" : "Absent" , "InTime" : "N/A" , "OutTime" : "N/A"} 
+                                attendance_data[date_str] = {"status": "Absent", "InTime": "N/A", "OutTime": "N/A"} 
                                 absence_dates.append(date_str)                       
 
                         attendance_data = json.dumps(attendance_data)
@@ -166,42 +157,39 @@ def employee_dashboard(request):
                         extra_days = 0
                         attendance_data = {}
 
+                _, num_days = calendar.monthrange(end_date_object.year, end_date_object.month)
 
-                _, num_days = calendar.monthrange(end_date_object.year , end_date_object.month)
-
-                for day in range(1 , end_date_object.day + 1):
+                for day in range(1, end_date_object.day + 1):
                     date_obj = datetime(end_date_object.year, end_date_object.month, day).date()
                     date_str = date_obj.strftime("%Y-%m-%d")
                     
                     if date_obj.weekday() == 5:  # Saturday (Monday=0, ..., Saturday=5)
                         saturday_counter += 1
-                        # Mark only the 1st, 3rd, and 5th Saturdays as holiday
                         if saturday_counter in (1, 3, 5):
                             if date_str in dates:
-                                attendance_data[date_str] = {"status" : "Holiday" , "InTime" : temp[date_str]["InTime"] , "OutTime" : temp[date_str]["OutTime"]}
+                                attendance_data[date_str] = {"status": "Holiday", "InTime": temp[date_str]["InTime"], "OutTime": temp[date_str]["OutTime"]}
                                 extra_days += 1
                             else:
-                                attendance_data[date_str] = {"status" : "Holiday" , "InTime" : "N/A" , "OutTime" : "N/A"}
+                                attendance_data[date_str] = {"status": "Holiday", "InTime": "N/A", "OutTime": "N/A"}
                         else:
                             if date_str in dates:                                
-                                attendance_data[date_str] = {"status" : "Present" , "InTime" : temp[date_str]["InTime"] , "OutTime" : temp[date_str]["OutTime"]}
+                                attendance_data[date_str] = {"status": "Present", "InTime": temp[date_str]["InTime"], "OutTime": temp[date_str]["OutTime"]}
                             else:
-                                attendance_data[date_str] = {"status" : "Absent" , "InTime" : "N/A" , "OutTime" : "N/A"}
+                                attendance_data[date_str] = {"status": "Absent", "InTime": "N/A", "OutTime": "N/A"}
                                 absence_dates.append(date_str)
                     elif date_obj.weekday() == 6:  # Sunday (Sunday=6)
                         if date_str in dates:
-                                attendance_data[date_str] = {"status" : "Holiday" , "InTime" : temp[date_str]["InTime"] , "OutTime" : temp[date_str]["OutTime"]}
+                            attendance_data[date_str] = {"status": "Holiday", "InTime": temp[date_str]["InTime"], "OutTime": temp[date_str]["OutTime"]}
                         else:
-                                attendance_data[date_str] = {"status" : "Holiday" , "InTime" : "N/A" , "OutTime" : "N/A"}
+                            attendance_data[date_str] = {"status": "Holiday", "InTime": "N/A", "OutTime": "N/A"}
                     else:
                         if date_str in dates:
-                            attendance_data[date_str] = {"status" : "Present" , "InTime" : temp[date_str]["InTime"] , "OutTime" : temp[date_str]["OutTime"]}
+                            attendance_data[date_str] = {"status": "Present", "InTime": temp[date_str]["InTime"], "OutTime": temp[date_str]["OutTime"]}
                             extra_days += 1
                         else:
-                            attendance_data[date_str] = {"status" : "Absent" , "InTime" : "N/A" , "OutTime" : "N/A"}
+                            attendance_data[date_str] = {"status": "Absent", "InTime": "N/A", "OutTime": "N/A"}
                             absence_dates.append(date_str)
-                        
-                
+
                 attendance_data = json.dumps(attendance_data)
                 month_wise_attendance[month_list[end_date_object.month - 1]] = attendance_data
                 month_wise_extra_days[month_list[end_date_object.month - 1]] = extra_days
@@ -225,20 +213,17 @@ def employee_dashboard(request):
 def monthly_attendance(request):
     temp = request.session.get('month_wise_attendance', {})
     months = list(temp.keys())
-    context = {'month_wise_attendance': request.session.get('month_wise_attendance', {}) , 'months' : months}
+    context = {'month_wise_attendance': request.session.get('month_wise_attendance', {}), 'months': months}
     return render(request, 'monthly_attendance.html', context)
 
 def get_attendance(request):
     selected_month = request.GET.get('month')
-    # Retrieve attendance data for the selected month from the session or any other source
     temp = request.session.get('month_wise_attendance', {})
     attendance = temp[selected_month]
-
 
     return JsonResponse({'attendance': attendance})
 
 def absence_review(request):
-    # Retrieve session data for months and absence dates.
     month_wise_attendance = request.session.get('month_wise_attendance', {})
     months = list(month_wise_attendance.keys())
     month_wise_absence_dates = request.session.get('month_wise_absence_dates', {})
@@ -247,34 +232,27 @@ def absence_review(request):
     absence_data = []
     message = None
 
-    # Initialize the month selection form with choices.
     month_form = SelectMonthForm(months=months)
-    # Initialize the absence review form.
     absence_form = AbsenceReviewForm()
 
     if request.method == "POST":
-        print("POST Data:", request.POST)  # Debugging output
+        print("POST Data:", request.POST)
 
-        # Process the month selection form submission.
         if 'month' in request.POST:
             month_form = SelectMonthForm(request.POST, months=months)
             if month_form.is_valid():
                 selected_month = month_form.cleaned_data['month']
                 absence_data = month_wise_absence_dates.get(selected_month, [])
-                # Set the absence review form's date choices based on the selected month.
                 absence_form.fields['date'].choices = [(d, d) for d in absence_data]
             else:
                 print("Month Form errors:", month_form.errors)
                 message = "Invalid Month Selection"
 
-        # Process the absence review form submission.
         elif 'selected_month' in request.POST:
             selected_month = request.POST.get('selected_month')
             absence_data = month_wise_absence_dates.get(selected_month, [])
-            # Set the date field choices before binding POST data.
             absence_form = AbsenceReviewForm()
             absence_form.fields['date'].choices = [(d, d) for d in absence_data]
-            # Now bind the POST data.
             absence_form = AbsenceReviewForm(request.POST)
             absence_form.fields['date'].choices = [(d, d) for d in absence_data]
 
@@ -284,7 +262,6 @@ def absence_review(request):
                 date = absence_form.cleaned_data['date']
                 explanation = absence_form.cleaned_data['explanation']
 
-                # Prevent submission of future dates.
                 if datetime.strptime(date, "%Y-%m-%d") > datetime.today():
                     message = "You cannot submit a review for a future date."
                 else:
@@ -308,30 +285,53 @@ def absence_review(request):
                 print("Absence Form errors:", absence_form.errors)
                 message = "Form submission failed. Please check your input."
 
-    # Ensure the absence form has the correct date choices when rendering.
     if selected_month and absence_data:
         absence_form.fields['date'].choices = [(d, d) for d in absence_data]
 
     return render(request, 'absence_review.html', {
-        'month_form': month_form,    # Optional: use this to render the month form separately if desired.
+        'month_form': month_form,
         'form': absence_form,
         'months': months,
         'selected_month': selected_month,
         'message': message
     })
 
+def user_management(request):
+    if request.session.get('role') == 'HR':
+        result_hr, result_employee, hr_count, employee_count = UpdateObject(request)
 
+        if result_hr and result_employee:
+            context = {"hr_count": len(result_hr), "employee_count": len(result_employee), "employee_users": result_employee, "hr_users": result_hr}
+        else:
+            context = {"hr_count": None, "employee_count": None, "employee_users": None, "hr_users": None}
 
-def monthly_attendance(request):
-    # Get the selected month from GET parameters (e.g., "February")
-    selected_month = request.GET.get('month', '')
-    # Retrieve the session object that holds attendance data for each month.
-    month_wise_attendance = request.session.get('month_wise_attendance', {})
-    # Prepare a list of available months for the drop-down.
-    months = list(month_wise_attendance.keys())
-    
-    attendance_data = {}
-    calendar_weeks = []
+        return render(request, 'user_management.html', context=context)
+    return HttpResponse("Unauthorized", status=403)
+
+def delete_user(request):
+    user_id = request.GET.get('user_id')
+    context = {"hr_count": request.session.get("hr_count"), "employee_count": request.session.get("employee_count"), "employee_users": request.session.get("hr_users"), "hr_users": request.session.get("employee_users")}
+    if user_id:
+        user_id = int(user_id)
+        with connection.cursor() as cursor:
+            try:
+                cursor.execute("DELETE FROM system_user WHERE employee_id = %s", [user_id])
+                connection.commit()
+
+                result_hr, result_employee, hr_count, employee_count = UpdateObject(request)
+                context['hr_users'] = result_hr
+                context['employee_users'] = result_employee
+                context['hr_count'] = len(result_hr)
+                context['employee_count'] = len(result_employee)
+                context["status"] = "User deleted successfully"
+                return render(request, 'user_management.html', context=context)
+            except Exception as e:
+                context["status"] = "Failed to delete user"
+                return render(request, 'user_management.html', context=context)
+    else:
+        context["status"] = "User ID not provided"
+        return render(request, 'user_management.html', context=context)
+
     year = 2025  # Default year
     month_num = 0  # Default month number
 
@@ -497,5 +497,20 @@ def delete_user(request):
         return render(request, 'user_management.html' , context=context)
     
 
-def AddUser(request):
-    pass
+def add_user(request):
+    if request.method == 'POST':
+        form = AddUser(request.POST)
+        if form.is_valid():
+            userid = form.cleaned_data['userid']
+            username = form.cleaned_data['username']
+            password = form.cleaned_data['password']
+            role = form.cleaned_data['role']
+            with connection.cursor() as cursor:
+                cursor.execute("INSERT INTO system_user (username, password, role , employee_id) VALUES (%s, %s, %s, %s)", [username, password, role , userid])
+                connection.commit()
+                return redirect('user_management')
+        else:
+            return render(request, 'add_user.html' , {'form' : form , 'status' : "Invalid form data"})
+    # else:
+        # form = AddUser()
+    return render(request, 'add_user.html', {'form': AddUser(), 'status': "Form is Empty"})

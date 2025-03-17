@@ -43,13 +43,14 @@
 </head>
 <body>
   <nav class="navbar navbar-expand-lg navbar-custom text-white">
-    <a class="navbar-brand text-white" href="#">HR Dashboard</a>
+    <a class="navbar-brand text-white" href="{% url 'hr_dashboard' %}">HR Dashboard</a>
     <div class="collapse navbar-collapse">
       <form class="form-inline mx-auto">
         <input class="form-control search-input" type="search" placeholder="Search Employee..." aria-label="Search">
         <button class="btn btn-light ml-2" type="submit">Search</button>
       </form>
     </div>
+    <a href="{% url 'logout' %}" class="btn btn-outline-light">Logout</a>
   </nav>
   <div class="container-fluid">
     <div class="row">
