@@ -440,3 +440,62 @@ def dashboard_data(request):
         'message': message
     }
     return JsonResponse(response_data)
+
+def UpdateObject(request):
+    with connection.cursor() as cursor:
+        cursor.execute("SELECT * FROM system_user where role = 'HR'")
+        result_hr = cursor.fetchall()
+            
+        cursor.execute("SELECT * FROM system_user where role = 'Employee'")
+        result_employee = cursor.fetchall()
+
+        if result_hr and result_employee:
+            # request.session['hr_users'] = result_hr
+            # request.session['employee_users'] = result_employee
+            # request.session['hr_count'] = len(result_hr)
+            # request.session['employee_count'] = len(result_employee)
+            return result_hr , result_employee , len(result_hr) , len(result_employee)
+        else:
+            return None , None , None , None
+
+def user_management(request):
+    if request.session.get('role') == 'HR':
+
+        result_hr , result_employee , hr_count , employee_count = UpdateObject(request)
+
+        if result_hr and result_employee:
+            context = {"hr_count" : len(result_hr) , "employee_count" : len(result_employee) , "employee_users" : result_employee  , "hr_users" : result_hr}
+        else:
+            context = {"hr_count" : None , "employee_count" : None , "employee_users" : None  , "hr_users" : None}
+
+        return render(request, 'user_management.html' , context=context)
+    return HttpResponse("Unauthorized", status=403)
+
+
+def delete_user(request):
+    user_id = request.GET.get('user_id')
+    context = {"hr_count" : request.session.get("hr_count") , "employee_count" : request.session.get("employee_count")  , "employee_users" : request.session.get("hr_users")  , "hr_users" : request.session.get("employee_users")}
+    if user_id:
+        user_id = int(user_id)
+        with connection.cursor() as cursor:
+            try:
+                cursor.execute("DELETE FROM system_user WHERE employee_id = %s", [user_id])
+                connection.commit()
+
+                result_hr , result_employee , hr_count , employee_count = UpdateObject(request)
+                context['hr_users'] = result_hr
+                context['employee_users'] = result_employee
+                context['hr_count'] = len(result_hr)
+                context['employee_count'] = len(result_employee)
+                context["status"] = "User deleted successfully"
+                return render(request, 'user_management.html' , context=context)
+            except Exception as e:
+                context["status"] = "Failed to delete user"
+                return render(request, 'user_management.html' , context=context)
+    else:
+        context["status"] = "User ID not provided"
+        return render(request, 'user_management.html' , context=context)
+    
+
+def AddUser(request):
+    pass

@@ -1,0 +1,101 @@
+{% extends 'base_user_management.html' %}
+{% block content %}
+<!-- Summary Area -->
+<div class="alert alert-info" role="alert">
+    <strong>Important Message:</strong> {{ status }}
+</div>
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="card glass-card p-4">
+            <div class="card-body">
+                <h5 class="card-title">
+                    <i class="fas fa-users-cog"></i> HR Users
+                </h5>
+                <p class="card-text display-4">{{ hr_count }}</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card glass-card p-4">
+            <div class="card-body">
+                <h5 class="card-title">
+                    <i class="fas fa-user"></i> Employee Users
+                </h5>
+                <p class="card-text display-4">{{ employee_count }}</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- HR Users Section -->
+<div class="mb-4">
+    <h4>HR Users</h4>
+    <div class="row">
+        {% if hr_users %}
+            {% for user in hr_users %}
+            <div class="col-md-4 mb-3">
+                <div class="card glass-card p-3">
+                    <div class="card-body">
+                        <p class="card-text"><strong>ID:</strong> {{ user.4 }}</p>
+                        <p class="card-text"><strong>Username:</strong> {{ user.1 }}</p>
+                        <!-- <a href="#" class="btn btn-sm btn-warning" data-toggle="tooltip" title="Edit User">
+                            <i class="fas fa-edit"></i> -->
+                        </a>
+                        <a href="{% url 'delete_user' %}?user_id={{ user.4 }}" class="btn btn-sm btn-danger" data-toggle="tooltip" title="Delete User">
+                            <i class="fas fa-trash-alt"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="col-md-12">
+                <p>No HR users found.</p>
+            </div>
+            {% endfor %}
+            {%else%}
+            <div class="col-md-12">
+                <p>No HR users found.</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Employee Users Section -->
+<div class="mb-4">
+    <h4>Employee Users</h4>
+    <div class="row">
+        {% if employee_users%}
+            {% for user in employee_users %}
+            <div class="col-md-4 mb-3">
+                <div class="card glass-card p-3">
+                    <div class="card-body">
+                        <p class="card-text"><strong>ID:</strong> {{ user.4 }}</p>
+                        <p class="card-text"><strong>Username:</strong> {{ user.1 }}</p>
+                        <!-- <a href="#" class="btn btn-sm btn-warning" data-toggle="tooltip" title="Edit User">
+                            <i class="fas fa-edit"></i>
+                        </a> -->
+                        <a href="{% url 'delete_user' %}?user_id={{ user.4 }}" class="btn btn-sm btn-danger" data-toggle="tooltip" title="Delete User">
+                            <i class="fas fa-trash-alt"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="col-md-12">
+                <p>No Employee users found.</p>
+            </div>
+            {% endfor %}
+            {%else%}
+            <div class="col-md-12">
+                <p>No Employee users found.</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+  $(function () {
+    $('[data-toggle="tooltip"]').tooltip();
+  });
+</script>
+{% endblock %}

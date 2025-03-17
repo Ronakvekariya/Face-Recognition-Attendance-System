@@ -24,3 +24,9 @@ class SelectMonthForm(forms.Form):
         super().__init__(*args, **kwargs)
         self.fields['month'].choices = [(m, m) for m in months]
 
+class AddUser(forms.Form):
+    userid = forms.CharField(max_length=150)
+    username = forms.CharField(max_length=150)
+    password = forms.CharField(widget=forms.PasswordInput)
+    role = forms.ChoiceField(choices=[('employee', 'Employee'), ('hr', 'HR')], widget=forms.Select(attrs={'class': 'form-control'}))
+
