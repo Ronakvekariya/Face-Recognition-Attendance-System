@@ -501,13 +501,21 @@ def delete_user(request):
 def add_user(request):
     if request.method == 'POST':
         form = AddUser(request.POST)
+        print("post request got")
         if form.is_valid():
+            print("processing form")
             userid = form.cleaned_data['userid']
             username = form.cleaned_data['username']
             password = form.cleaned_data['password']
             role = form.cleaned_data['role']
+            email = form.cleaned_data['email']
+            job_title = form.cleaned_data['job_title']
+            job_position = form.cleaned_data['job_position']
+            mobile_number = form.cleaned_data['mobile_number']
+            middlename = form.cleaned_data['middlename']
+            surname = form.cleaned_data['surname']
             with connection.cursor() as cursor:
-                cursor.execute("INSERT INTO system_user (username, password, role , employee_id) VALUES (%s, %s, %s, %s)", [username, password, role , userid])
+                cursor.execute("INSERT INTO system_user (username, password, role , employee_id, email , job_title , job_position , middlename , surname , mobilenumber) VALUES (%s, %s, %s, %s , %s , %s , %s, %s , %s , %s)", [username, password, role , userid , email , job_title , job_position , middlename , surname , mobile_number])
                 connection.commit()
                 return redirect('user_management')
         else:
@@ -515,3 +523,7 @@ def add_user(request):
     # else:
         # form = AddUser()
     return render(request, 'add_user.html', {'form': AddUser(), 'status': "Form is Empty"})
+
+
+def leave_management(request):
+    return render(request, 'leave_management.html')

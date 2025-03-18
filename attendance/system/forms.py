@@ -38,6 +38,9 @@ class SelectMonthForm(forms.Form):
 class AddUser(forms.Form):
     userid = forms.CharField(label='User ID', max_length=100)
     username = forms.CharField(label='Username', max_length=100)
+    middlename = forms.CharField(label='Middlename', max_length=100)
+    surname = forms.CharField(label='Surname', max_length=100)
+    mobile_number = forms.CharField(max_length=10, required=True, label="Mobile Number")
     password = forms.CharField(label='Password', widget=forms.PasswordInput)
     email = forms.EmailField(label='Email')
     role = forms.ChoiceField(
