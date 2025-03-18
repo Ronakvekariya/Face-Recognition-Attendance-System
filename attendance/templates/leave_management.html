@@ -53,136 +53,52 @@
     <a href="{% url 'logout' %}" class="btn btn-outline-light">Logout</a>
   </nav>
 
-<div class="container mt-4">
+  <div class="container mt-4">
     <h2 class="mb-4">Leave Requests</h2>
-
-    <!-- Search & Filter -->
-    <div class="row mb-3">
-        <div class="col-md-6">
-            <input type="text" class="form-control" id="searchInput" placeholder="Search by employee name..." onkeyup="searchTable()">
+    <div class="accordion" id="leaveRequestsAccordion">
+        {% for leave in leave_requests %}
+        <div class="card">
+            <div class="card-header" id="heading{{ leave.id }}">
+                <h5 class="mb-0">
+                    <button class="btn btn-link" data-toggle="collapse" data-target="#collapse{{ leave.id }}">
+                        {{ leave.full_name }} ({{ leave.leave_type }})
+                    </button>
+                </h5>
+            </div>
+            <div id="collapse{{ leave.id }}" class="collapse" data-parent="#leaveRequestsAccordion">
+                <div class="card-body">
+                    <p><strong>Job Position:</strong> {{ leave.job_position }}</p>
+                    <p><strong>Job Title:</strong> {{ leave.job_title }}</p>
+                    <p><strong>Message:</strong> {{ leave.message }}</p>
+                    <p><strong>From:</strong> {{ leave.start_date }} <strong>To:</strong> {{ leave.end_date }}</p>
+                    <button class="btn btn-success btn-sm" onclick="approveLeave({{ leave.id }})">Approve</button>
+                    <button class="btn btn-danger btn-sm reject-btn" data-id="{{ leave.id }}">Reject</button>
+                </div>
+            </div>
         </div>
-        <div class="col-md-3">
-            <select class="form-control" id="filterStatus" onchange="filterTable()">
-                <option value="">All Status</option>
-                <option value="Pending">Pending</option>
-                <option value="Approved">Approved</option>
-                <option value="Rejected">Rejected</option>
-            </select>
-        </div>
-    </div>
-
-    <!-- Leave Requests Table -->
-    <div class="card glass-card p-3">
-        <table class="table table-hover">
-            <thead>
-                <tr>
-                    <th>Employee Id</th>
-                    <th>Name</th>
-                    <th>Leave Type</th>
-                    <th>Status</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for leave in leave_requests %}
-                <tr class="leave-row" data-status="{{ leave.status }}">
-                    <td>{{ leave.employee.name }}</td>
-                    <td>{{ leave.leave_type }}</td>
-                    <td>{{ leave.start_date }}</td>
-                    <td>{{ leave.end_date }}</td>
-                    <td>
-                        <span class="badge {% if leave.status == 'Approved' %}badge-success{% elif leave.status == 'Rejected' %}badge-danger{% else %}badge-warning{% endif %}">
-                            {{ leave.status }}
-                        </span>
-                    </td>
-                    <td>
-                        {% if leave.status == 'Pending' %}
-                            <button class="btn btn-success btn-sm approve-btn" data-id="{{ leave.id }}">Approve</button>
-                            <button class="btn btn-danger btn-sm reject-btn" data-id="{{ leave.id }}">Reject</button>
-                        {% else %}
-                            <button class="btn btn-secondary btn-sm" disabled>{{ leave.status }}</button>
-                        {% endif %}
-                    </td>
-                </tr>
-                {% empty %}
-                <tr>
-                    <td colspan="6" class="text-center">No leave requests found.</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+        {% empty %}
+        <p>No leave requests available.</p>
+        {% endfor %}
     </div>
 </div>
 
-<!-- Reject Modal -->
-<div class="modal fade" id="rejectModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Reject Leave Request</h5>
-                <button type="button" class="close" data-dismiss="modal">&times;</button>
-            </div>
-            <div class="modal-body">
-                <input type="hidden" id="leaveId">
-                <textarea id="rejectReason" class="form-control" rows="3" placeholder="Enter rejection reason..."></textarea>
-            </div>
-            <div class="modal-footer">
-                <button class="btn btn-danger" onclick="rejectLeave()">Submit</button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- JavaScript for Search, Filter, Approve, Reject -->
+<!-- JavaScript for handling approvals and rejections -->
 <script>
-    function searchTable() {
-        let input = document.getElementById("searchInput").value.toLowerCase();
-        let rows = document.querySelectorAll(".leave-row");
-        rows.forEach(row => {
-            let name = row.cells[0].innerText.toLowerCase();
-            row.style.display = name.includes(input) ? "" : "none";
-        });
-    }
+  function approveLeave(leaveId) {
+      alert('Leave ID ' + leaveId + ' approved.');
+      // You can add AJAX logic here to update the database
+  }
 
-    function filterTable() {
-        let filter = document.getElementById("filterStatus").value;
-        let rows = document.querySelectorAll(".leave-row");
-        rows.forEach(row => {
-            row.style.display = (!filter || row.dataset.status === filter) ? "" : "none";
-        });
-    }
-    document.querySelectorAll(".approve-btn").forEach(button => {
-        button.addEventListener("click", function() {
-            let leaveId = this.getAttribute("data-id");
-            approveLeave(leaveId);
-        });
-    });
-    document.querySelectorAll(".reject-btn").forEach(button => {
-        button.addEventListener("click", function() {
-            let leaveId = this.getAttribute("data-id");
-            approveLeave(leaveId);
-        });
-    });
-
-    function approveLeave(leaveId) {
-        fetch(`/approve_leave/${leaveId}/`, { method: "POST", headers: { "X-CSRFToken": "{{ csrf_token }}" } })
-            .then(() => location.reload());
-    }
-
-    function openRejectModal(leaveId) {
-        document.getElementById("leaveId").value = leaveId;
-        $("#rejectModal").modal("show");
-    }
-
-    function rejectLeave() {
-        let leaveId = document.getElementById("leaveId").value;
-        let reason = document.getElementById("rejectReason").value;
-        fetch(`/reject_leave/${leaveId}/`, {
-            method: "POST",
-            headers: { "X-CSRFToken": "{{ csrf_token }}" },
-            body: JSON.stringify({ reason: reason })
-        }).then(() => location.reload());
-    }
+  document.addEventListener("DOMContentLoaded", function() {
+      const rejectButtons = document.querySelectorAll(".reject-btn");
+      rejectButtons.forEach(button => {
+          button.addEventListener("click", function() {
+              const leaveId = this.getAttribute("data-id");
+              alert('Leave ID ' + leaveId + ' rejected.');
+              // Add AJAX logic here if needed
+          });
+      });
+  });
 </script>
 </body>
 </html>

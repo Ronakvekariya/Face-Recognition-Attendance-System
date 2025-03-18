@@ -3,7 +3,7 @@ from django.http import HttpResponse, JsonResponse
 from django.db import connection
 from .forms import LoginForm, AbsenceReviewForm, SelectMonthForm, AddUser
 from datetime import datetime, date
-import calendar
+from calendar import monthrange
 import json
 
 def login_view(request):
@@ -211,17 +211,54 @@ def employee_dashboard(request):
     return HttpResponse("Unauthorized", status=403)
 
 def monthly_attendance(request):
+    selected_month = request.GET.get('month')
     temp = request.session.get('month_wise_attendance', {})
-    months = list(temp.keys())
-    context = {'month_wise_attendance': request.session.get('month_wise_attendance', {}), 'months': months}
-    return render(request, 'monthly_attendance.html', context)
+    if selected_month:
+        pass
+        year = datetime.now().year
+        attendance_data = json.loads(temp[selected_month])
+
+
+        month_list = {"January":1, "February" : 2, "March" : 3, "April" : 4 , "May" : 5, "June" : 6,
+                              "July" : 7, "August" : 8, "September" : 9, "October" : 10, "November" : 11, "December" : 12}
+
+        # Get the month number
+        month_num = month_list[selected_month]
+
+       # Generate calendar weeks
+        _, num_days = monthrange(year, month_num)
+        first_day = datetime(year, month_num, 1)
+        start_day = (first_day.weekday() - 6) % 7  # Adjust to start on Sunday
+        calendar_weeks = []
+        week = [0] * start_day
+        for day in range(1, num_days + 1):
+            week.append(day)
+            if len(week) == 7:
+                calendar_weeks.append(week)
+                week = []
+        if week:
+            calendar_weeks.append(week)
+
+        return render(request, 'monthly_attendance.html', {
+            'months': list(temp.keys()),
+            'selected_month': selected_month,
+            'year': year,
+            'calendar_weeks': calendar_weeks,
+            'attendance_data': attendance_data,
+            'month_num': month_num,
+        })
+
+    else:
+        months = list(temp.keys())
+        context = {'month_wise_attendance': request.session.get('month_wise_attendance', {}), 'months': months}
+        return render(request, 'monthly_attendance.html', context)
 
 def get_attendance(request):
     selected_month = request.GET.get('month')
     temp = request.session.get('month_wise_attendance', {})
     attendance = temp[selected_month]
 
-    return JsonResponse({'attendance': attendance})
+    return render(request, 'monthly_attendance.html', {'attendance': attendance})
 
 def absence_review(request):
     month_wise_attendance = request.session.get('month_wise_attendance', {})
