@@ -4,7 +4,9 @@ from django.db import connection
 from .forms import LoginForm, AbsenceReviewForm, SelectMonthForm, AddUser
 from datetime import datetime, date
 from calendar import monthrange
+import calendar
 import json
+from collections import defaultdict
 
 def login_view(request):
     if request.method == 'POST':
@@ -314,8 +316,8 @@ def absence_review(request):
                             message = "You have already submitted an explanation for this date."
                         else:
                             cursor.execute(
-                                "INSERT INTO absence_review (employee_id, date, explanation, status , leave_type) VALUES (%s, %s, %s, %s, %s)",
-                                [employee_id, date, explanation, "pending", leave_type]
+                                "INSERT INTO absence_review (employee_id, date, explanation, status , leave_type , hr_response) VALUES (%s, %s, %s, %s, %s , %s)",
+                                [employee_id, date, explanation, "pending", leave_type , "HR has not responded yet"]
                             )
                             connection.commit()
                             return redirect('employee_dashboard')
@@ -561,6 +563,55 @@ def add_user(request):
         # form = AddUser()
     return render(request, 'add_user.html', {'form': AddUser(), 'status': "Form is Empty"})
 
+def get_leave_data():
+    pass
+    # return result
 
 def leave_management(request):
-    return render(request, 'leave_management.html')
+    leave_type = ['Sick Leave' , 'Paid Leave' , 'Informed Leave']
+    job_positions = ['Fresher' , 'Junior Developer' , 'Senior Developer' ,'Managing Director' , 'Deputy General Manager' ]
+    job_title = ['.NET Developer' , 'ERP' , 'HRMS' , 'Data Scientist' , 'React Developer' , 'DBA']
+    leave_requests = []
+    with connection.cursor() as cursor:
+        cursor.execute("SELECT * FROM absence_review")
+        absent_result = cursor.fetchall()
+
+        for rows in absent_result:
+            cursor.execute("select * from system_user where employee_id = %s" , [rows[1]])
+            result = cursor.fetchone()
+            leave_requests.append({"id" : rows[1] , "full_name" :  str(result[1]) + " " + str(result[8]) + " " + str(result[9]) , "leave_type" : rows[5] , "job_position" :result[7] , "job_title" : result[6] , "message" : rows[3] , "status" : rows[4]})
+    grouped_leave_requests = defaultdict(list)
+    for leave in leave_requests:
+        grouped_leave_requests[leave['id']].append(leave)
+
+    leave_requests = []
+
+    for ky , val in grouped_leave_requests.items():
+        for index in val:
+            leave_requests.append(index)
+    result = {'leave_type' : leave_type , 'job_positions' : job_positions , 'job_title' : job_title , "leave_requests": leave_requests }
+    return render(request, 'leave_management.html' , context=result)
+
+def leave_requests(request):
+    leave_type = request.GET.get("leave_type" , "")
+    job_position = request.GET.get("job_position", "")
+    job_title = request.GET.get("job_title", "")
+
+    leave_requests = LeaveRequest.objects.all()
+
+    if status:
+        leave_requests = leave_requests.filter(status=status)
+    if job_position:
+        leave_requests = leave_requests.filter(job_position=job_position)
+    if job_title:
+        leave_requests = leave_requests.filter(job_title=job_title)
+
+
+    return render(request, "leave_requests.html", {
+        "leave_requests": leave_requests,
+        "job_positions": job_position,
+        "leave_types": job_title
+    })
+
+def update_leave_status(request):
+    print("update leave status")

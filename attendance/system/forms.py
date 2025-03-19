@@ -67,7 +67,7 @@ class AddUser(forms.Form):
             ('Junior Developer', 'Junior Developer'),
             ('Senior Developer', 'Senior Developer'),
             ('Managing Director', 'Managing Director'),
-            ('Deputy Chief Head', 'Deputy Chief Head')
+            ('Deputy General Manager', 'Deputy General Manager')
         ],
         widget=forms.Select(attrs={'class': 'form-control'})
     )

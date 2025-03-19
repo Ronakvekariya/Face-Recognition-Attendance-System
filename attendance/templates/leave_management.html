@@ -4,20 +4,41 @@
   <meta charset="UTF-8">
   <title>HR Dashboard</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Bootstrap CSS -->
   <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+  <!-- Font Awesome -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <!-- Google Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+  <!-- jQuery, Popper.js, and Bootstrap JS -->
+  <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
   <style>
+    /* Global Styles */
     body {
       font-family: 'Poppins', sans-serif;
-      background: linear-gradient(135deg, #e0f7fa, #f1f8e9);
+      background: linear-gradient(135deg, #f5f7fa, #c3cfe2);
+      margin: 0;
+      padding: 0;
     }
+    
+    /* Navbar Styles */
     .navbar-custom {
-      background-color: #007bff;
+      background-color: #0056b3;
     }
+    .navbar-brand, .navbar-text, .nav-link, .btn-outline-light {
+      color: #fff !important;
+    }
+    
+    /* Search Input */
     .search-input {
-      width: 500px;
+      width: 100%;
+      max-width: 500px;
+      border-radius: 30px;
     }
+    
+    /* Sidebar (if used later) */
     .sidebar {
       height: 100vh;
       width: 250px;
@@ -33,17 +54,71 @@
       background: rgba(255, 255, 255, 0.4);
       border-radius: 5px;
     }
+    
+    /* Card & Accordion Styles */
     .card-custom {
       background: rgba(255, 255, 255, 0.3);
       backdrop-filter: blur(10px);
       border: none;
+      border-radius: 10px;
       box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      transition: transform 0.3s ease;
+    }
+    .card-custom:hover {
+      transform: translateY(-5px);
+    }
+    
+    .card-header.bg-light {
+      background: rgba(255, 255, 255, 0.8);
+      border-bottom: 1px solid #ddd;
+      padding: 0;
+    }
+    
+    .card-header h5 {
+      margin: 0;
+    }
+    
+    .card-header button {
+      padding: 15px 20px;
+      transition: background 0.3s ease;
+    }
+    .card-header button:hover {
+      background: rgba(0, 123, 255, 0.1);
+    }
+    
+    /* Leave Request Styles */
+    .leave-request {
+      background: rgba(255, 255, 255, 0.6);
+      border: none;
+      border-radius: 10px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    
+    /* Filter Form Styles */
+    .form-control, .btn-primary {
+      border-radius: 30px;
+    }
+    .btn-primary {
+      padding: 8px 20px;
+      font-weight: 600;
+      transition: background 0.3s ease;
+    }
+    .btn-primary:hover {
+      background: #004494;
+    }
+    
+    /* Responsive Adjustments */
+    @media (max-width: 768px) {
+      .search-input {
+        max-width: 100%;
+      }
     }
   </style>
 </head>
 <body>
-  <nav class="navbar navbar-expand-lg navbar-custom text-white">
-    <a class="navbar-brand text-white" href="{% url 'hr_dashboard' %}">HR Dashboard</a>
+  <!-- Navbar -->
+  <nav class="navbar navbar-expand-lg navbar-custom">
+    <a class="navbar-brand" href="{% url 'hr_dashboard' %}">HR Dashboard</a>
     <div class="collapse navbar-collapse">
       <form class="form-inline mx-auto">
         <input class="form-control search-input" type="search" placeholder="Search Employee..." aria-label="Search">
@@ -53,52 +128,151 @@
     <a href="{% url 'logout' %}" class="btn btn-outline-light">Logout</a>
   </nav>
 
+  {% block content %}
   <div class="container mt-4">
-    <h2 class="mb-4">Leave Requests</h2>
-    <div class="accordion" id="leaveRequestsAccordion">
-        {% for leave in leave_requests %}
-        <div class="card">
-            <div class="card-header" id="heading{{ leave.id }}">
+      <h2 class="mb-4">Leave Requests</h2>
+
+      <!-- Filter Section -->
+      <form method="GET" action="{% url 'leave_requests' %}" class="mb-4">
+          <div class="row">
+              <div class="col-md-3 mb-2">
+                  <select class="form-control" name="status">
+                      <option value="">All Status</option>
+                      {% for type in leave_type %}
+                      <option value="{{ type }}" {% if request.GET.leave_type == type %}selected{% endif %}>{{ type }}</option>
+                      {% endfor %}
+                  </select>
+              </div>
+              <div class="col-md-3 mb-2">
+                  <select class="form-control" name="job_position">
+                      <option value="">All Positions</option>
+                      {% for position in job_positions %}
+                          <option value="{{ position }}" {% if request.GET.job_position == position %}selected{% endif %}>{{ position }}</option>
+                      {% endfor %}
+                  </select>
+              </div>
+              <div class="col-md-3 mb-2">
+                  <select class="form-control" name="job_title">
+                      <option value="">All Titles</option>
+                      {% for type in job_title %}
+                          <option value="{{ type }}" {% if request.GET.leave_type == type %}selected{% endif %}>{{ type }}</option>
+                      {% endfor %}
+                  </select>
+              </div>
+              <div class="col-md-3 mb-2">
+                  <button type="submit" class="btn btn-primary btn-block">Filter</button>
+              </div>
+          </div>
+      </form>
+
+      <!-- Leave Requests Accordion -->
+      <div class="accordion" id="leaveRequestsAccordion">
+          {% regroup leave_requests by id as user_leave_requests %}
+          {% for user in user_leave_requests %}
+          <div class="card card-custom mb-3">
+            <div class="card-header bg-light" id="heading{{ user.grouper }}">
                 <h5 class="mb-0">
-                    <button class="btn btn-link" data-toggle="collapse" data-target="#collapse{{ leave.id }}">
-                        {{ leave.full_name }} ({{ leave.leave_type }})
+                    <button class="btn btn-outline-primary w-100 text-left font-weight-bold d-flex justify-content-between align-items-center" 
+                            type="button" 
+                            data-toggle="collapse" 
+                            data-target="#collapse{{ user.grouper }}" 
+                            aria-expanded="true" 
+                            aria-controls="collapse{{ user.grouper }}">
+                        <span>
+                            <i class="fas fa-user-circle mr-2"></i> {{ user.list.0.full_name }}
+                        </span>
+                        <span class="badge badge-info">ID: {{ user.grouper }}</span>
                     </button>
                 </h5>
             </div>
-            <div id="collapse{{ leave.id }}" class="collapse" data-parent="#leaveRequestsAccordion">
-                <div class="card-body">
-                    <p><strong>Job Position:</strong> {{ leave.job_position }}</p>
-                    <p><strong>Job Title:</strong> {{ leave.job_title }}</p>
-                    <p><strong>Message:</strong> {{ leave.message }}</p>
-                    <p><strong>From:</strong> {{ leave.start_date }} <strong>To:</strong> {{ leave.end_date }}</p>
-                    <button class="btn btn-success btn-sm" onclick="approveLeave({{ leave.id }})">Approve</button>
-                    <button class="btn btn-danger btn-sm reject-btn" data-id="{{ leave.id }}">Reject</button>
-                </div>
-            </div>
-        </div>
-        {% empty %}
-        <p>No leave requests available.</p>
-        {% endfor %}
-    </div>
-</div>
+            
+              <div id="collapse{{ user.grouper }}" class="collapse" aria-labelledby="heading{{ user.grouper }}" data-parent="#leaveRequestsAccordion">
+                  <div class="card-body">
+                      {% for leave in user.list %}
+                        <div class="leave-request mb-3 p-3 border rounded">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <strong>Employee ID:</strong>
+                                    <span>{{ leave.id }}</span>
+                                </div>
+                                <div class="col-md-6">
+                                    <strong>Leave Type:</strong>
+                                    <span>{{ leave.leave_type }}</span>
+                                </div>
+                            </div>
+                            <div class="row mt-2">
+                                <div class="col-md-6">
+                                    <strong>Job Position:</strong>
+                                    <span>{{ leave.job_position }}</span>
+                                </div>
+                                <div class="col-md-6">
+                                    <strong>Job Title:</strong>
+                                    <span>{{ leave.job_title }}</span>
+                                </div>
+                            </div>
+                            <div class="row mt-2">
+                                <div class="col-md-12">
+                                    <strong>Explanation:</strong>
+                                    <span>{{ leave.message }}</span>
+                                </div>
+                            </div>
+                          <!-- Uncomment below if date info is needed -->
+                          <!-- <p><strong>From:</strong> {{ leave.start_date }} <strong>To:</strong> {{ leave.end_date }}</p> -->
 
-<!-- JavaScript for handling approvals and rejections -->
-<script>
-  function approveLeave(leaveId) {
-      alert('Leave ID ' + leaveId + ' approved.');
-      // You can add AJAX logic here to update the database
-  }
+                          <div class="col-md-12 text-right mt-2">
+                            {% if leave.status == "pending" %}
+                                <button class="btn btn-success btn-sm action-btn mr-2" data-id="{{ leave.id }}" data-action="approve">Approve</button>
+                                <button class="btn btn-danger btn-sm action-btn" data-id="{{ leave.id }}" data-action="reject">Reject</button>
+                            {% else %}
+                                <span class="badge {% if leave.status == 'approved' %}badge-success{% else %}badge-danger{% endif %}">
+                                    {{ leave.status|title }}
+                                </span>
+                            {% endif %}
+                        </div>
+                      </div>
+                      <hr>
+                      {% endfor %}
+                  </div>
+              </div>
+          </div>
+          {% endfor %}
+      </div>
+  </div>
 
-  document.addEventListener("DOMContentLoaded", function() {
-      const rejectButtons = document.querySelectorAll(".reject-btn");
-      rejectButtons.forEach(button => {
+  <!-- JavaScript for AJAX Requests -->
+  <script>
+    document.addEventListener("DOMContentLoaded", function() {
+      const actionButtons = document.querySelectorAll(".action-btn");
+
+      actionButtons.forEach(button => {
           button.addEventListener("click", function() {
               const leaveId = this.getAttribute("data-id");
-              alert('Leave ID ' + leaveId + ' rejected.');
-              // Add AJAX logic here if needed
+              const action = this.getAttribute("data-action");
+
+              fetch("{% url 'update_leave_status' %}", {
+                  method: "POST",
+                  headers: {
+                      "X-CSRFToken": "{{ csrf_token }}",
+                      "Content-Type": "application/json"
+                  },
+                  body: JSON.stringify({ leave_id: leaveId, action: action })
+              })
+              .then(response => response.json())
+              .then(data => {
+                  if (data.success) {
+                      location.reload();
+                  } else {
+                      alert("Error: " + data.error);
+                  }
+              })
+              .catch(error => {
+                  console.error("Error:", error);
+                  alert("An error occurred while updating the leave status.");
+              });
           });
       });
-  });
-</script>
+    });
+  </script>
+  {% endblock %}
 </body>
 </html>
