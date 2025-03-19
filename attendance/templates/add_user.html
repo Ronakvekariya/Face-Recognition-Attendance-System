@@ -1,16 +1,16 @@
 {% load dict_extras %}
 
-
-<!--The above line is template filter which is use to manupilate the data in the template(HTML)-->
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <title>HR Dashboard</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Bootstrap CSS -->
   <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+  <!-- Font Awesome -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <!-- Google Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
   <style>
     body {
@@ -52,8 +52,8 @@
       border-radius: 12px;
       box-shadow: 0 10px 20px rgba(0, 0, 0, 0.12);
       transition: all 0.3s ease-in-out;
+      margin-top: 30px;
     }
-
     .status {
       background: rgba(0, 123, 255, 0.12);
       color: #007bff;
@@ -65,14 +65,12 @@
       font-weight: 500;
       margin-bottom: 20px;
     }
-
     .form-group label {
       font-weight: 500;
       color: #444;
       font-size: 16px;
       font-family: 'Poppins', sans-serif;
     }
-
     .form-control {
       background: rgba(255, 255, 255, 0.6);
       border: 1px solid rgba(0, 0, 0, 0.1);
@@ -82,14 +80,12 @@
       font-family: 'Poppins', sans-serif;
       transition: all 0.3s ease-in-out;
     }
-
     .form-control:focus {
       background: rgba(255, 255, 255, 0.8);
       box-shadow: 0 0 8px rgba(0, 123, 255, 0.4);
       border-color: #007bff;
       outline: none;
     }
-
     .btn-primary {
       background: linear-gradient(135deg, #007bff, #0056b3);
       border: none;
@@ -100,11 +96,23 @@
       font-family: 'Poppins', sans-serif;
       transition: all 0.3s ease-in-out;
     }
-
     .btn-primary:hover {
       background: linear-gradient(135deg, #0056b3, #003d80);
       transform: scale(1.04);
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    }
+    .btn-secondary {
+      font-weight: 600;
+      padding: 12px 28px;
+      border-radius: 10px;
+      font-size: 16px;
+      font-family: 'Poppins', sans-serif;
+      transition: all 0.3s ease-in-out;
+    }
+    .tooltip-icon {
+      margin-left: 5px;
+      color: #007bff;
+      cursor: pointer;
     }
   </style>
 </head>
@@ -118,58 +126,201 @@
       </form>
     </div>
   </nav>
-  <div class="container mt-4">
+  <div class="container">
     {% if status %}
       <div class="status">
         {{ status }}
       </div>
     {% endif %}
 
-    <form method="post" action="{% url 'add_user' %}">
+    <h2 class="mb-4">Add New User</h2>
+    <form method="post" action="{% url 'add_user' %}" id="addUserForm">
       {% csrf_token %}
       <div class="form-group">
-          <label for="userid">User Id</label>
+          <label for="id_userid">User Id
+            <i class="fas fa-info-circle tooltip-icon" data-toggle="tooltip" title="Enter a unique user identifier"></i>
+          </label>
           {{ form.userid|add_class:"form-control" }}
       </div>
       <div class="form-group">
-          <label for="username">Username</label>
+          <label for="id_username">Username
+            <i class="fas fa-info-circle tooltip-icon" data-toggle="tooltip" title="Choose a memorable username"></i>
+          </label>
           {{ form.username|add_class:"form-control" }}
       </div>
       <div class="form-group">
-        <label for="middlename">Middle Name</label>
+        <label for="id_middlename">Middle Name
+          <i class="fas fa-info-circle tooltip-icon" data-toggle="tooltip" title="Optional: Provide your middle name"></i>
+        </label>
         {{ form.middlename|add_class:"form-control" }}
-    </div>
+      </div>
       <div class="form-group">
-        <label for="surname">SurName</label>
+        <label for="id_surname">SurName
+          <i class="fas fa-info-circle tooltip-icon" data-toggle="tooltip" title="Your family or last name"></i>
+        </label>
         {{ form.surname|add_class:"form-control" }}
-    </div>
+      </div>
       <div class="form-group">
-          <label for="password">Password</label>
+          <label for="id_password">Password
+            <i class="fas fa-info-circle tooltip-icon" data-toggle="tooltip" title="Choose a strong password"></i>
+          </label>
           {{ form.password|add_class:"form-control" }}
       </div>
       <div class="form-group">
-          <label for="email">Email</label>
+          <label for="id_email">Email
+            <i class="fas fa-info-circle tooltip-icon" data-toggle="tooltip" title="Enter a valid email address"></i>
+          </label>
           {{ form.email|add_class:"form-control" }}
       </div>
       <div class="form-group">
-        <label for="mobile_number">Mobile Number</label>
+        <label for="id_mobile_number">Mobile Number
+          <i class="fas fa-info-circle tooltip-icon" data-toggle="tooltip" title="Include your country code if necessary"></i>
+        </label>
         {{ form.mobile_number|add_class:"form-control" }}
-    </div>
+      </div>
       <div class="form-group">
-          <label for="role">Role</label>
+          <label for="id_role">Role
+            <i class="fas fa-info-circle tooltip-icon" data-toggle="tooltip" title="Select the role for this user"></i>
+          </label>
           {{ form.role|add_class:"form-control" }}
       </div>
       <div class="form-group">
-          <label for="job_title">Job Title</label>
+          <label for="id_job_title">Job Title
+            <i class="fas fa-info-circle tooltip-icon" data-toggle="tooltip" title="Enter the user's job title"></i>
+          </label>
           {{ form.job_title|add_class:"form-control" }}
       </div>
       <div class="form-group">
-          <label for="job_position">Job Position</label>
+          <label for="id_job_position">Job Position
+            <i class="fas fa-info-circle tooltip-icon" data-toggle="tooltip" title="Enter the position this user holds"></i>
+          </label>
           {{ form.job_position|add_class:"form-control" }}
       </div>
-      <button type="submit" class="btn btn-primary">Add User</button>
-      <button type="reset" class="btn btn-secondary">Reset</button>
-  </form>
+      <button type="submit" class="btn btn-primary"><i class="fas fa-user-plus"></i> Add User</button>
+      <button type="button" class="btn btn-info" id="previewBtn"><i class="fas fa-eye"></i> Preview</button>
+      <button type="button" class="btn btn-secondary" id="resetBtn"><i class="fas fa-undo"></i> Reset</button>
+    </form>
   </div>
+
+  <!-- Modal for Form Preview -->
+  <div class="modal fade" id="previewModal" tabindex="-1" role="dialog" aria-labelledby="previewModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+      <div class="modal-content">
+         <div class="modal-header">
+           <h5 class="modal-title" id="previewModalLabel">Form Preview</h5>
+           <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+             <span aria-hidden="true">&times;</span>
+           </button>
+         </div>
+         <div class="modal-body">
+           <table class="table table-sm">
+             <tbody>
+               <tr>
+                 <th>User Id:</th>
+                 <td id="previewUserId"></td>
+               </tr>
+               <tr>
+                 <th>Username:</th>
+                 <td id="previewUsername"></td>
+               </tr>
+               <tr>
+                 <th>Middle Name:</th>
+                 <td id="previewMiddlename"></td>
+               </tr>
+               <tr>
+                 <th>SurName:</th>
+                 <td id="previewSurname"></td>
+               </tr>
+               <tr>
+                 <th>Password:</th>
+                 <td id="previewPassword"></td>
+               </tr>
+               <tr>
+                 <th>Email:</th>
+                 <td id="previewEmail"></td>
+               </tr>
+               <tr>
+                 <th>Mobile Number:</th>
+                 <td id="previewMobile"></td>
+               </tr>
+               <tr>
+                 <th>Role:</th>
+                 <td id="previewRole"></td>
+               </tr>
+               <tr>
+                 <th>Job Title:</th>
+                 <td id="previewJobTitle"></td>
+               </tr>
+               <tr>
+                 <th>Job Position:</th>
+                 <td id="previewJobPosition"></td>
+               </tr>
+             </tbody>
+           </table>
+         </div>
+         <div class="modal-footer">
+           <button type="button" class="btn btn-secondary" data-dismiss="modal">Close Preview</button>
+         </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal for Reset Confirmation -->
+  <div class="modal fade" id="confirmResetModal" tabindex="-1" role="dialog" aria-labelledby="confirmResetModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+      <div class="modal-content">
+         <div class="modal-header">
+           <h5 class="modal-title" id="confirmResetModalLabel">Confirm Reset</h5>
+           <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+             <span aria-hidden="true">&times;</span>
+           </button>
+         </div>
+         <div class="modal-body">
+           Are you sure you want to reset the form? All entered data will be lost.
+         </div>
+         <div class="modal-footer">
+           <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+           <button type="button" class="btn btn-danger" id="confirmResetBtn">Reset</button>
+         </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- jQuery, Popper.js, and Bootstrap JS -->
+  <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+  <script>
+    $(function () {
+      $('[data-toggle="tooltip"]').tooltip();
+
+      // Preview button: gather form data and show preview modal
+      $('#previewBtn').click(function(e) {
+        e.preventDefault();
+        $('#previewUserId').text($('#id_userid').val());
+        $('#previewUsername').text($('#id_username').val());
+        $('#previewMiddlename').text($('#id_middlename').val());
+        $('#previewSurname').text($('#id_surname').val());
+        $('#previewPassword').text($('#id_password').val());
+        $('#previewEmail').text($('#id_email').val());
+        $('#previewMobile').text($('#id_mobile_number').val());
+        $('#previewRole').text($('#id_role').val());
+        $('#previewJobTitle').text($('#id_job_title').val());
+        $('#previewJobPosition').text($('#id_job_position').val());
+        $('#previewModal').modal('show');
+      });
+      
+      // Reset button click handler to show modal confirmation
+      $('#resetBtn').click(function(e) {
+        e.preventDefault();
+        $('#confirmResetModal').modal('show');
+      });
+      
+      $('#confirmResetBtn').click(function() {
+        $('#addUserForm')[0].reset();
+        $('#confirmResetModal').modal('hide');
+      });
+    });
+  </script>
 </body>
 </html>

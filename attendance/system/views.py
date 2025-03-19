@@ -336,17 +336,17 @@ def absence_review(request):
         'message': message
     })
 
-def user_management(request):
-    if request.session.get('role') == 'HR':
-        result_hr, result_employee, hr_count, employee_count = UpdateObject(request)
+# def user_management(request):
+#     if request.session.get('role') == 'HR':
+#         result_hr, result_employee, hr_count, employee_count = UpdateObject(request)
 
-        if result_hr and result_employee:
-            context = {"hr_count": len(result_hr), "employee_count": len(result_employee), "employee_users": result_employee, "hr_users": result_hr}
-        else:
-            context = {"hr_count": None, "employee_count": None, "employee_users": None, "hr_users": None}
+#         if result_hr and result_employee:
+#             context = {"hr_count": len(result_hr), "employee_count": len(result_employee), "employee_users": result_employee, "hr_users": result_hr}
+#         else:
+#             context = {"hr_count": None, "employee_count": None, "employee_users": None, "hr_users": None}
 
-        return render(request, 'user_management.html', context=context)
-    return HttpResponse("Unauthorized", status=403)
+#         return render(request, 'user_management.html', context=context)
+#     return HttpResponse("Unauthorized", status=403)
 
 def delete_user(request):
     user_id = request.GET.get('user_id')
