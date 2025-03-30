@@ -584,7 +584,7 @@ def leave_management(request):
         for rows in absent_result:
             cursor.execute("select * from system_user where employee_id = %s" , [rows[1]])
             result = cursor.fetchone()
-            leave_requests.append({"id" : rows[1] , "full_name" :  str(result[1]) + " " + str(result[8]) + " " + str(result[9]) , "leave_type" : rows[5] , "job_position" :result[7] , "job_title" : result[6] , "message" : rows[3] , "status" : rows[4] , "date" : rows[2]})
+            leave_requests.append({"id" : rows[1] , "full_name" :  str(result[1]) + " " + str(result[8]) + " " + str(result[9]) , "leave_type" : rows[5] , "job_position" :result[7] , "job_title" : result[6] , "message" : rows[3] , "status" : rows[4] , "date" : rows[2] , "mobile" : result[10] , "email" : result[5]})
     grouped_leave_requests = defaultdict(list)
     for leave in leave_requests:
         grouped_leave_requests[leave['id']].append(leave)
@@ -617,11 +617,11 @@ def leave_requests(request):
                 cursor.execute("select * from system_user where employee_id = %s" , [rows[1]])
                 result = cursor.fetchone()
                 if leave_type and leave_type == rows[5]:
-                    leave_requests_lst.append({"id" : rows[1] , "full_name" :  str(result[1]) + " " + str(result[8]) + " " + str(result[9]) , "leave_type" : rows[5] , "job_position" :result[7] , "job_title" : result[6] , "message" : rows[3] , "status" : rows[4] , "date" : rows[2]})
+                    leave_requests_lst.append({"id" : rows[1] , "full_name" :  str(result[1]) + " " + str(result[8]) + " " + str(result[9]) , "leave_type" : rows[5] , "job_position" :result[7] , "job_title" : result[6] , "message" : rows[3] , "status" : rows[4] , "date" : rows[2] , "mobile" : result[10] , "email" : result[5]})
                 if job_position and job_position == result[7]:
-                    leave_requests_lst.append({"id" : rows[1] , "full_name" :  str(result[1]) + " " + str(result[8]) + " " + str(result[9]) , "leave_type" : rows[5] , "job_position" :result[7] , "job_title" : result[6] , "message" : rows[3] , "status" : rows[4] , "date" : rows[2]})
+                    leave_requests_lst.append({"id" : rows[1] , "full_name" :  str(result[1]) + " " + str(result[8]) + " " + str(result[9]) , "leave_type" : rows[5] , "job_position" :result[7] , "job_title" : result[6] , "message" : rows[3] , "status" : rows[4] , "date" : rows[2] , "mobile" : result[10] , "email" : result[5]})
                 if job_title and job_title == result[6]:
-                    leave_requests_lst.append({"id" : rows[1] , "full_name" :  str(result[1]) + " " + str(result[8]) + " " + str(result[9]) , "leave_type" : rows[5] , "job_position" :result[7] , "job_title" : result[6] , "message" : rows[3] , "status" : rows[4] , "date" : rows[2]})
+                    leave_requests_lst.append({"id" : rows[1] , "full_name" :  str(result[1]) + " " + str(result[8]) + " " + str(result[9]) , "leave_type" : rows[5] , "job_position" :result[7] , "job_title" : result[6] , "message" : rows[3] , "status" : rows[4] , "date" : rows[2] , "mobile" : result[10] , "email" : result[5]})
 
         
         leave_type = ['Sick Leave' , 'Paid Leave' , 'Informed Leave']

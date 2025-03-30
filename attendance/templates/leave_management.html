@@ -113,6 +113,19 @@
         max-width: 100%;
       }
     }
+
+        .flex-big {
+        flex: 3; /* Takes up the most space */
+    }
+
+    .flex-moderate {
+        flex: 2; /* Takes up moderate space */
+    }
+
+    .flex-small {
+        flex: 1; /* Takes up the least space */
+    }
+
   </style>
 </head>
 <body>
@@ -172,23 +185,45 @@
           {% for user in user_leave_requests %}
           <div class="card card-custom mb-3">
             <div class="card-header bg-light" id="heading{{ user.grouper }}">
-                <h5 class="mb-0">
-                    <button class="btn btn-outline-primary w-100 text-left font-weight-bold d-flex justify-content-between align-items-center" 
-                            type="button" 
-                            data-toggle="collapse" 
-                            data-target="#collapse{{ user.grouper }}" 
-                            aria-expanded="true" 
-                            aria-controls="collapse{{ user.grouper }}">
-                        <span>
-                            <i class="fas fa-user-circle mr-2"></i> {{ user.list.0.full_name }}
-                        </span>
-                        
-                        <span class="badge badge-info">ID: {{ user.grouper }}</span>
-                    </button>
-                </h5>
-            </div>
+              <h5 class="mb-0">
+                  <button
+                  class="btn btn-outline-primary w-100 text-left font-weight-bold d-flex justify-content-between align-items-center"
+                  type="button"
+                  data-toggle="collapse"
+                  data-target="#collapse{{ user.grouper }}"
+                  aria-expanded="true"
+                  aria-controls="collapse{{ user.grouper }}">
+              
+                      <span class="user-info flex-big">
+                          <i class="fas fa-user-circle mr-2"></i>
+                          {{ user.list.0.full_name }}
+                      </span>
+                      <span class="user-info flex-moderate">
+                          {{ user.list.0.job_title }}
+                      </span>
+                      <span class="user-info flex-moderate">
+                          {{ user.list.0.job_position }}
+                      </span>
+                      <span class="badge badge-info flex-small">ID: {{ user.grouper }}</span>
+                  </button>
+              
+              </h5>
+          </div>
+          
             
               <div id="collapse{{ user.grouper }}" class="collapse" aria-labelledby="heading{{ user.grouper }}" data-parent="#leaveRequestsAccordion">
+                <div class="leave-request mb-3 p-3 border rounded">
+                  <div class="row">
+                      <div class="col-md-6">
+                          <strong>Mobile:</strong>
+                          <span>{{ user.list.0.mobile }}</span>
+                      </div>
+                      <div class="col-md-6">
+                          <strong>Email:</strong>
+                          <span>{{ user.list.0.email }}</span>
+                      </div>
+                  </div>
+                  </div>
                   <div class="card-body">
                       {% for leave in user.list %}
                         {% if leave.status == 'pending' %}
