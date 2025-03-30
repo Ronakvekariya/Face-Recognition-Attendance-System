@@ -157,6 +157,25 @@
 </div>
 
 <script>
+    $(function () {
+    // Delete button click handler to populate modal
+    $('.delete-user-btn').on('click', function () {
+      var baseUrl = $(this).data('url'); // Base URL from data-url
+      var userid = $(this).data('userid'); // User ID from data-userid
+      var username = $(this).data('username');
+      var userrole = $(this).data('userrole');
+
+      // Construct the full delete URL with userid as a GET parameter
+      var deleteUrl = baseUrl + '&user_id=' + userid;
+
+      // Set the href attribute of the delete button in the modal
+      $('#confirmDeleteBtn').attr('href', deleteUrl);
+
+      // Populate the modal message with user details
+      $('#deleteModalMessage').text('Are you sure you want to delete ' + userrole + ' user "' + username + '" (ID: ' + userid + ')?');
+    });
+  });
+  
   $(function () {
     $('[data-toggle="tooltip"]').tooltip();
 

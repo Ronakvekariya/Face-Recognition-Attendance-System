@@ -55,8 +55,8 @@ if __name__ == "__main__":
                 st.write(f"Unknown face detected")
                 Count = st.session_state.system.UnknownFace(embeddings = emp_id[2][0]["embedding"])
 
-                if Count > 0:
-                    message =  f"The Unknown face has seen for {Count} times in Tech Elecon" 
+                if Count[1] > 0:
+                    message =  f"The Unknown face has seen for {Count[1]} times in Tech Elecon" 
                 else:
                     message =  "The Unknown face has not seen in Tech Elecon , It is the First time visiting"
                 

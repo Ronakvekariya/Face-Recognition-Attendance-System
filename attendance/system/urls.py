@@ -14,6 +14,6 @@ urlpatterns = [
     path('hr-dashboard/user-management/delete-user', delete_user, name='delete_user'),
     path('hr-dashboard/user-management/add-user', add_user, name='add_user'),
     path('hr-dashboard/leave-management', leave_management, name='leave_management'),
-    path('hr-dashboard/leave-management', leave_requests, name='leave_requests'),
-    path('hr-dashboard/leave-management', update_leave_status, name='update_leave_status'),
+    path('hr-dashboard/leave-requests', leave_requests, name='leave_requests'),
+    path('hr-dashboard/update-leave-status', update_leave_status, name='update_leave_status'),
 ]

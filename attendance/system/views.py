@@ -7,6 +7,11 @@ from calendar import monthrange
 import calendar
 import json
 from collections import defaultdict
+from django.http import JsonResponse
+from django.views.decorators.http import require_POST
+from django.views.decorators.csrf import csrf_exempt
+
+
 
 def login_view(request):
     if request.method == 'POST':
@@ -579,7 +584,7 @@ def leave_management(request):
         for rows in absent_result:
             cursor.execute("select * from system_user where employee_id = %s" , [rows[1]])
             result = cursor.fetchone()
-            leave_requests.append({"id" : rows[1] , "full_name" :  str(result[1]) + " " + str(result[8]) + " " + str(result[9]) , "leave_type" : rows[5] , "job_position" :result[7] , "job_title" : result[6] , "message" : rows[3] , "status" : rows[4]})
+            leave_requests.append({"id" : rows[1] , "full_name" :  str(result[1]) + " " + str(result[8]) + " " + str(result[9]) , "leave_type" : rows[5] , "job_position" :result[7] , "job_title" : result[6] , "message" : rows[3] , "status" : rows[4] , "date" : rows[2]})
     grouped_leave_requests = defaultdict(list)
     for leave in leave_requests:
         grouped_leave_requests[leave['id']].append(leave)
@@ -593,25 +598,108 @@ def leave_management(request):
     return render(request, 'leave_management.html' , context=result)
 
 def leave_requests(request):
-    leave_type = request.GET.get("leave_type" , "")
-    job_position = request.GET.get("job_position", "")
-    job_title = request.GET.get("job_title", "")
+    if request.method == "POST":
+        leave_type = request.POST.get("leave_type" , "")
+        job_position = request.POST.get("job_position", "")
+        job_title = request.POST.get("job_title", "")
 
-    leave_requests = LeaveRequest.objects.all()
+        print("Leave Type:", leave_type)
+        print("Job Position:", job_position)
+        print("Job Title:", job_title)
 
-    if status:
-        leave_requests = leave_requests.filter(status=status)
-    if job_position:
-        leave_requests = leave_requests.filter(job_position=job_position)
-    if job_title:
-        leave_requests = leave_requests.filter(job_title=job_title)
+        leave_requests_lst = []
 
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT * FROM absence_review")
+            absent_result = cursor.fetchall()
+        
+            for rows in absent_result:
+                cursor.execute("select * from system_user where employee_id = %s" , [rows[1]])
+                result = cursor.fetchone()
+                if leave_type and leave_type == rows[5]:
+                    leave_requests_lst.append({"id" : rows[1] , "full_name" :  str(result[1]) + " " + str(result[8]) + " " + str(result[9]) , "leave_type" : rows[5] , "job_position" :result[7] , "job_title" : result[6] , "message" : rows[3] , "status" : rows[4] , "date" : rows[2]})
+                if job_position and job_position == result[7]:
+                    leave_requests_lst.append({"id" : rows[1] , "full_name" :  str(result[1]) + " " + str(result[8]) + " " + str(result[9]) , "leave_type" : rows[5] , "job_position" :result[7] , "job_title" : result[6] , "message" : rows[3] , "status" : rows[4] , "date" : rows[2]})
+                if job_title and job_title == result[6]:
+                    leave_requests_lst.append({"id" : rows[1] , "full_name" :  str(result[1]) + " " + str(result[8]) + " " + str(result[9]) , "leave_type" : rows[5] , "job_position" :result[7] , "job_title" : result[6] , "message" : rows[3] , "status" : rows[4] , "date" : rows[2]})
 
-    return render(request, "leave_requests.html", {
-        "leave_requests": leave_requests,
-        "job_positions": job_position,
-        "leave_types": job_title
-    })
+        
+        leave_type = ['Sick Leave' , 'Paid Leave' , 'Informed Leave']
+        job_positions = ['Fresher' , 'Junior Developer' , 'Senior Developer' ,'Managing Director' , 'Deputy General Manager' ]
+        job_title = ['.NET Developer' , 'ERP' , 'HRMS' , 'Data Scientist' , 'React Developer' , 'DBA']
 
+        grouped_leave_requests = defaultdict(list)
+
+        for leave in leave_requests_lst:
+            grouped_leave_requests[leave['id']].append(leave)
+
+        leave_requests_lst = []
+
+        for ky , val in grouped_leave_requests.items():
+            for index in val:
+                leave_requests_lst.append(index)
+
+        return render(request, "leave_management.html", {
+            "leave_requests": leave_requests_lst,
+            "job_positions": job_positions,
+            "job_title": job_title,
+            "leave_type": leave_type,
+        })
+
+@csrf_exempt  # Use this if you're not using CSRF tokens; otherwise, ensure CSRF tokens are included
 def update_leave_status(request):
-    print("update leave status")
+    if request.method == "POST":
+        try:
+            # Parse the JSON data from the request body
+            data = json.loads(request.body)
+            leave_id = data.get('leave_id')
+            leave_date = data.get('leave_date')
+            action = data.get('action')
+            rejection_reason = data.get('rejection_reason', None)
+
+            # Convert the date string to a datetime object
+            date_object = datetime.strptime(leave_date, "%b. %d, %Y")
+
+            # Format the datetime object to the desired string format
+            leave_date = date_object.strftime("%Y-%m-%d")
+
+            print("Leave ID:", leave_id)
+            print("Action:", action)
+            print(leave_date)
+            print(rejection_reason)
+
+            with connection.cursor() as cursor:
+                if action == "approve":
+                    cursor.execute("UPDATE absence_review SET status = %s , hr_response = %s WHERE employee_id = %s and date = %s ", ["approved", "HR is approved the request",leave_id , leave_date])
+                    result1 = cursor.rowcount
+                    if cursor.rowcount == 0:
+                        return JsonResponse({'success': False, 'error': 'Query Execution failed'})
+                    cursor.execute("select attendance from attendance_table where employee_id = %s" , [leave_id])
+                    attendance = cursor.fetchone()[0]
+                    if attendance:
+                        attendance = json.loads(attendance)
+                        # Time strings
+                        time_string_1 = ["09:00:00"]
+                        time_string_2 = ["17:45:00"]
+
+                        attendance[leave_date] = {'InTime' : time_string_1  , 'OutTime' : time_string_2}
+                        cursor.execute('UPDATE attendance_table SET attendance = %s WHERE employee_id = %s', [json.dumps(attendance),leave_id])
+                        result2 = cursor.rowcount
+
+                        if result1 == 0:
+                            return JsonResponse({'success': False, 'error': 'Query Execution failed'})
+                            connection.rollback()
+                    else:
+                        return JsonResponse({'success': False, 'error': 'No Attendanec data found for the employee ' + leave_id})
+                elif action == "reject":
+                    cursor.execute("UPDATE absence_review SET status = %s , hr_response = %s WHERE employee_id = %s and date = %s ", ["rejected", rejection_reason , leave_id , leave_date])
+                    if cursor.rowcount == 0:
+                        return JsonResponse({'success': False, 'error': 'Query Execution failed'})
+            # Return a success response
+            return JsonResponse({'success': True})
+        except json.JSONDecodeError:
+            return JsonResponse({'success': False, 'error': 'Invalid JSON data'})
+        except Exception as e:
+            return JsonResponse({'success': False, 'error': str(e)})
+    else:
+        return JsonResponse({'success': False, 'error': 'Invalid request method'})
