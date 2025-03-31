@@ -1,0 +1,233 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Employee Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Bootstrap CSS for a responsive layout -->
+  <!-- jQuery -->
+  <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+  <!-- Popper.js -->
+  <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
+  <!-- Bootstrap JS -->
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+  <link rel="stylesheet" href="{% static 'custom.css' %}">
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+
+  <!-- Chart.js Library -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- Chart.js adapter for date-fns (for time scale support) -->
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
+</head>
+<body>
+  <nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <a class="navbar-brand" href="{% url 'employee_dashboard' %}">Dashboard</a>
+    <div class="collapse navbar-collapse">
+      <ul class="navbar-nav ml-auto">
+        <li class="nav-item">
+          <a class="nav-link" href="{% url 'monthly_attendance' %}">Monthly Attendance</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="{% url 'absence_review' %}">Absence Review</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="{% url 'logout' %}">Logout</a>
+        </li>
+      </ul>
+    </div>
+  </nav>
+
+  {% block content %}
+  <div class="container mt-4">
+    <h2>Your Absence Request Timeline</h2>
+  
+    {% comment %} Loop through monthly groups {% endcomment %}
+    {% for month, requests in monthly_groups.items %}
+      <h3 class="mt-5">{{ month }}</h3>
+      
+      <!-- Desktop View: Grid Layout (shown on md and up) -->
+      <div class="d-none d-md-block">
+        <div class="row">
+          {% for request in requests %}
+            <div class="col-md-4">
+              <div class="card mb-4 shadow-sm">
+                <div class="card-body">
+                  <h5 class="card-title">Request on {{ request.date|date:"M d, Y" }}</h5>
+                  <div class="timeline">
+                    <!-- Request Under Review Section -->
+                    <div class="timeline-event review-event mb-3" style="cursor:pointer;" data-toggle="modal" data-target="#reviewModal{{ request.id }}">
+                      <div class="d-flex align-items-center">
+                        <i class="fa fa-clock-o fa-lg text-primary mr-2"></i>
+                        <strong>Request Under Review</strong>
+                      </div>
+                      <p class="mb-1"><small>Date: {{ request.date|date:"M d, Y" }}</small></p>
+                      <div class="explanation" id="explanation-{{ request.id }}">
+                        <p class="mb-1"><small>Explanation: {{ request.explanation }}</small></p>
+                      </div>
+                      <p class="mb-0"><small>Type: {{ request.type_of_leave }}</small></p>
+                    </div>
+                    <hr>
+                    <!-- HR Decision Section -->
+                    <div class="timeline-event decision-event" style="cursor:pointer;" data-toggle="modal" data-target="#decisionModal{{ request.id }}">
+                      {% if request.hr_decision_status == "approved" %}
+                        <div class="d-flex align-items-center">
+                          <i class="fa fa-check fa-lg text-success mr-2"></i>
+                          <strong class="text-success">Approved</strong>
+                        </div>
+                      {% elif request.hr_decision_status == "rejected" %}
+                        <div class="d-flex align-items-center">
+                          <i class="fa fa-times fa-lg text-danger mr-2"></i>
+                          <strong class="text-danger">Rejected</strong>
+                        </div>
+                      {% else %}
+                        <div class="d-flex align-items-center">
+                          <i class="fa fa-question fa-lg text-warning mr-2"></i>
+                          <strong class="text-warning">Pending</strong>
+                        </div>
+                      {% endif %}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+      
+            <!-- Modal for Request Under Review -->
+            <div class="modal fade" id="reviewModal{{ request.id }}" tabindex="-1" role="dialog" aria-labelledby="reviewModalLabel{{ request.id }}" aria-hidden="true">
+              <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                  <div class="modal-header">
+                    <h5 class="modal-title" id="reviewModalLabel{{ request.id }}">Request Under Review Details</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                      <span aria-hidden="true">&times;</span>
+                    </button>
+                  </div>
+                  <div class="modal-body">
+                    <p><strong>Date:</strong> {{ request.date|date:"M d, Y" }}</p>
+                    <p><strong>Explanation:</strong> {{ request.explanation }}</p>
+                    <p><strong>Type of Leave:</strong> {{ request.type_of_leave }}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+      
+            <!-- Modal for HR Decision -->
+            <div class="modal fade" id="decisionModal{{ request.id }}" tabindex="-1" role="dialog" aria-labelledby="decisionModalLabel{{ request.id }}" aria-hidden="true">
+              <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                  <div class="modal-header">
+                    <h5 class="modal-title" id="decisionModalLabel{{ request.id }}">HR Decision Details</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                      <span aria-hidden="true">&times;</span>
+                    </button>
+                  </div>
+                  <div class="modal-body">
+                    {% if request.hr_decision_status == "approved" %}
+                      <p>Kindly check your monthly attendance, Your absence has been updated.</p>
+                    {% elif request.hr_decision_status == "rejected" %}
+                      <p><strong>Rejection Reason:</strong> {{ request.hr_response_message }}</p>
+                    {% else %}
+                      <p>The HR decision is pending.</p>
+                    {% endif %}
+                  </div>
+                </div>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+        
+        <!-- Pagination Controls for the Month -->
+        {% if requests.has_other_pages %}
+          <nav aria-label="Page navigation">
+            <ul class="pagination justify-content-center">
+              {% if requests.has_previous %}
+                <li class="page-item">
+                  <a class="page-link" href="?month={{ month }}&page={{ requests.previous_page_number }}">Previous</a>
+                </li>
+              {% endif %}
+              {% for num in requests.paginator.page_range %}
+                <li class="page-item {% if requests.number == num %}active{% endif %}">
+                  <a class="page-link" href="?month={{ month }}&page={{ num }}">{{ num }}</a>
+                </li>
+              {% endfor %}
+              {% if requests.has_next %}
+                <li class="page-item">
+                  <a class="page-link" href="?month={{ month }}&page={{ requests.next_page_number }}">Next</a>
+                </li>
+              {% endif %}
+            </ul>
+          </nav>
+        {% endif %}
+      </div>
+      
+      <!-- Mobile View: Carousel (shown on small screens) -->
+      <div class="d-block d-md-none">
+        <div id="carousel{{ month }}" class="carousel slide" data-ride="carousel">
+          <div class="carousel-inner">
+            {% for request in requests %}
+              <div class="carousel-item {% if forloop.first %}active{% endif %}">
+                <div class="card mb-4 shadow-sm">
+                  <div class="card-body">
+                    <h5 class="card-title">Request on {{ request.date|date:"M d, Y" }}</h5>
+                    <div class="timeline">
+                      <!-- Request Under Review Section -->
+                      <div class="timeline-event review-event mb-3" style="cursor:pointer;" data-toggle="modal" data-target="#reviewModal{{ request.id }}">
+                        <div class="d-flex align-items-center">
+                          <i class="fa fa-clock-o fa-lg text-primary mr-2"></i>
+                          <strong>Request Under Review</strong>
+                        </div>
+                        <p class="mb-1"><small>Date: {{ request.date|date:"M d, Y" }}</small></p>
+                        <div class="explanation" id="explanation-mobile-{{ request.id }}">
+                          <p class="mb-1"><small>Explanation: {{ request.explanation }}</small></p>
+                        </div>
+                        <p class="mb-0"><small>Type: {{ request.type_of_leave }}</small></p>
+                      </div>
+                      <hr>
+                      <!-- HR Decision Section -->
+                      <div class="timeline-event decision-event" style="cursor:pointer;" data-toggle="modal" data-target="#decisionModal{{ request.id }}">
+                        {% if request.hr_decision_status == "approved" %}
+                          <div class="d-flex align-items-center">
+                            <i class="fa fa-check fa-lg text-success mr-2"></i>
+                            <strong class="text-success">Approved</strong>
+                          </div>
+                        {% elif request.hr_decision_status == "rejected" %}
+                          <div class="d-flex align-items-center">
+                            <i class="fa fa-times fa-lg text-danger mr-2"></i>
+                            <strong class="text-danger">Rejected</strong>
+                          </div>
+                        {% else %}
+                          <div class="d-flex align-items-center">
+                            <i class="fa fa-question fa-lg text-warning mr-2"></i>
+                            <strong class="text-warning">Pending</strong>
+                          </div>
+                        {% endif %}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+          <a class="carousel-control-prev" href="#carousel{{ month }}" role="button" data-slide="prev">
+            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+            <span class="sr-only">Previous</span>
+          </a>
+          <a class="carousel-control-next" href="#carousel{{ month }}" role="button" data-slide="next">
+            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+            <span class="sr-only">Next</span>
+          </a>
+        </div>
+      </div>
+    {% empty %}
+      <p>No requests found.</p>
+    {% endfor %}
+  </div>
+  {% endblock %}
+  
+  <!-- Include jQuery, Popper.js, and Bootstrap JS (preferably right before the closing </body> tag) -->
+  <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>

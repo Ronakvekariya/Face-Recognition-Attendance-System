@@ -1,0 +1,64 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap');
+
+body {
+  font-family: 'Roboto', sans-serif;
+  font-size: 1.1em;
+  background-color: #f8f9fa;
+  color: #333;
+}
+
+.container {
+  margin-top: 20px;
+}
+
+/* Card Styling */
+.card {
+  border-radius: 8px;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+}
+
+.card-title {
+  font-size: 1.3em;
+  margin-bottom: 0.75rem;
+}
+
+/* Timeline Event Styling */
+.timeline-event {
+  padding: 10px;
+  background-color: #fff;
+  border: 1px solid #e0e0e0;
+  border-radius: 5px;
+  transition: background-color 0.2s, transform 0.2s;
+}
+
+.timeline-event:hover {
+  background-color: #f1f1f1;
+  transform: scale(1.02);
+}
+
+/* Modal Styling */
+.modal-content {
+  border-radius: 8px;
+}
+
+.modal-header {
+  background-color: #007BFF;
+  color: #fff;
+  border-top-left-radius: 8px;
+  border-top-right-radius: 8px;
+}
+
+/* Scrollable Explanation Box */
+.explanation {
+  max-height: 80px;  /* Adjust the height as needed */
+  overflow-y: auto;
+  margin-bottom: 10px;
+  border: 1px solid #ddd;
+  padding: 5px;
+  border-radius: 4px;
+}

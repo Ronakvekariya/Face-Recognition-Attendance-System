@@ -10,6 +10,7 @@ from collections import defaultdict
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 from django.views.decorators.csrf import csrf_exempt
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 
 
 
@@ -703,3 +704,62 @@ def update_leave_status(request):
             return JsonResponse({'success': False, 'error': str(e)})
     else:
         return JsonResponse({'success': False, 'error': 'Invalid request method'})
+
+
+def request_display(request):
+    # Get the employee ID from the session
+    requests_qs = []
+    with connection.cursor() as cursor:
+        cursor.execute("SELECT * FROM absence_review WHERE employee_id = %s", [request.session['Id']])
+        result = cursor.fetchall()
+
+        if result:
+            for row in result:
+                requests_qs.append(list(row))
+            requests_qs = sorted(requests_qs, key=lambda x: x[2])        
+    
+    # Convert each request from list to dictionary for easier access in the template.
+    requests_list = []
+    for req in requests_qs:
+        request_dict = {
+            'id': req[0],
+            'employee_id': req[1],
+            'date': req[2],
+            'explanation': req[3],
+            'hr_decision_status': req[4],
+            'type_of_leave': req[5],
+            'hr_response_message': req[6],
+        }
+        requests_list.append(request_dict)
+        
+    # Group requests by month (formatted as "Month Year", e.g., "January 2025")
+    monthly_groups = defaultdict(list)
+    for req in requests_list:
+        month_str = req['date'].strftime("%B %Y")
+        monthly_groups[month_str].append(req)
+        
+    # Paginate each monthly group: three requests per page.
+    monthly_groups_paginated = {}
+    for month, requests in monthly_groups.items():
+        paginator = Paginator(requests, 3)
+        
+        # If the current query parameter 'month' matches this group, try to get its 'page' parameter; else default to page 1.
+        if request.GET.get('month') == month:
+            page = request.GET.get('page')
+        else:
+            page = 1
+        
+        try:
+            paginated_requests = paginator.page(page)
+        except PageNotAnInteger:
+            paginated_requests = paginator.page(1)
+        except EmptyPage:
+            paginated_requests = paginator.page(paginator.num_pages)
+        
+        monthly_groups_paginated[month] = paginated_requests
+    
+    context = {
+        'monthly_groups': monthly_groups_paginated,
+    }
+    
+    return render(request, 'request_display.html' , context=context)
