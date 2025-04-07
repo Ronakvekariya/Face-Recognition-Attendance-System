@@ -1,41 +1,95 @@
 {% extends 'base_user_management.html' %}
 {% block content %}
 <style>
-  /* Glassmorphism card style */
-  .glass-card {
-    background: rgba(255, 255, 255, 0.3);
-    backdrop-filter: blur(10px);
-    border: none;
-    border-radius: 10px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    transition: transform 0.3s ease;
+  /* Global Styles */
+  body {
+      font-family: 'Poppins', sans-serif;
+      background: #f8f9fa;
+      color: #444;
+      margin: 0;
+      padding: 0;
+      font-size: 16px;
+      line-height: 1.6;
   }
-  .glass-card:hover {
-    transform: translateY(-5px);
+  
+  h1, h2, h3, h4, h5, h6 {
+      color: #222;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
   }
-  /* Section header styling */
+  
+  h2 {
+      font-size: 24px;
+  }
+  
+  /* Card Styles */
+  .card-custom {
+      background: #ffffff;
+      border: none;
+      border-radius: 10px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      margin-bottom: 1rem;
+  }
+  
+  .card-custom:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+  }
+  
+  /* Section Header Styling */
   .section-title {
-    font-weight: 600;
-    color: #333;
-    border-bottom: 2px solid #0056b3;
-    padding-bottom: 5px;
-    margin-bottom: 20px;
+      font-weight: 600;
+      color: #222;
+      font-size: 20px;
+      border-bottom: 2px solid #0056b3;
+      padding-bottom: 5px;
+      margin-bottom: 20px;
   }
-  /* Custom Alert styling */
-  .custom-alert {
-    background: linear-gradient(135deg, #c3cfe2, #f5f7fa);
-    border: none;
-    color: #333;
-    font-weight: 500;
-    border-radius: 5px;
-  }
-  /* Search Form styling */
+  
+  /* Search Form Styling */
   .search-form {
-    margin-bottom: 20px;
+      margin-bottom: 20px;
+  }
+  
+  /* Button Styling */
+  .btn-primary {
+      padding: 0.5rem 1.5rem;
+      font-weight: 600;
+      background-color: #0056b3;
+      border: none;
+      border-radius: 30px;
+  }
+  
+  .btn-primary:hover {
+      background-color: #004494;
+  }
+  
+  /* Custom Alert Styling */
+  .custom-alert {
+      background: #ffffff;
+      border: 1px solid #dee2e6;
+      color: #444;
+      font-weight: 500;
+      border-radius: 10px;
+      padding: 1rem;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+  }
+  
+  /* Tabbed Navigation */
+  .nav-tabs .nav-link {
+      font-size: 18px;
+      font-weight: 600;
+      color: #0056b3;
+  }
+  
+  .nav-tabs .nav-link.active {
+      color: #004494;
+      border-color: #0056b3 #0056b3 #ffffff;
   }
 </style>
 
-<!-- Search/Filter Form -->
+<!-- Search/Filter Form
 <div class="container">
   <form method="GET" action="" class="search-form form-inline">
     <div class="form-group mr-2">
@@ -43,96 +97,105 @@
     </div>
     <button type="submit" class="btn btn-primary">Search</button>
   </form>
-</div>
-
+</div> -->
 <!-- Summary Area -->
-<div class="alert custom-alert" role="alert">
-    <strong>Important Message:</strong> {{ status }}
+<div class="container mb-4">
+  <div class="alert custom-alert" role="alert">
+      <strong>Important Message:</strong> {{ status }}
+  </div>
 </div>
 
-<div class="row mb-4">
-    <div class="col-md-6">
-        <div class="card glass-card p-4">
-            <div class="card-body">
-                <h5 class="card-title">
-                    <i class="fas fa-users-cog"></i> HR Users
-                </h5>
-                <p class="card-text display-4">{{ hr_count }}</p>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-6">
-        <div class="card glass-card p-4">
-            <div class="card-body">
-                <h5 class="card-title">
-                    <i class="fas fa-user"></i> Employee Users
-                </h5>
-                <p class="card-text display-4">{{ employee_count }}</p>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- HR Users Section -->
-<div class="mb-4">
-    <h4 class="section-title">HR Users</h4>
-    <div class="row">
+<div class="container">
+  <div class="row mb-4">
+      <div class="col-md-6">
+          <div class="card card-custom p-4">
+              <div class="card-body">
+                  <h5 class="card-title">
+                      <i class="fas fa-users-cog"></i> HR Users
+                  </h5>
+                  <p class="card-text display-4">{{ hr_count }}</p>
+              </div>
+          </div>
+      </div>
+      <div class="col-md-6">
+          <div class="card card-custom p-4">
+              <div class="card-body">
+                  <h5 class="card-title">
+                      <i class="fas fa-user"></i> Employee Users
+                  </h5>
+                  <p class="card-text display-4">{{ employee_count }}</p>
+              </div>
+          </div>
+      </div>
+  </div>
+  
+  <!-- Tabbed Navigation -->
+  <ul class="nav nav-tabs" id="userTab" role="tablist">
+    <li class="nav-item">
+      <a class="nav-link active" id="hr-tab" data-toggle="tab" href="#hr" role="tab" aria-controls="hr" aria-selected="true">HR Users</a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link" id="employee-tab" data-toggle="tab" href="#employee" role="tab" aria-controls="employee" aria-selected="false">Employee Users</a>
+    </li>
+  </ul>
+  
+  <div class="tab-content" id="userTabContent">
+    <!-- HR Users Tab -->
+    <div class="tab-pane fade show active" id="hr" role="tabpanel" aria-labelledby="hr-tab">
+      <div class="mt-4">
         {% if hr_users %}
+          <div class="row">
             {% for user in hr_users %}
-            <div class="col-md-4 mb-3">
-                <div class="card glass-card p-3">
-                    <div class="card-body">
-                        <p class="card-text"><strong>ID:</strong> {{ user.4 }}</p>
-                        <p class="card-text"><strong>Username:</strong> {{ user.1 }}</p>
-                        <!-- Delete button triggers modal confirmation -->
-                        <button type="button" class="btn btn-sm btn-danger delete-user-btn" data-toggle="modal" data-target="#confirmDeleteModal" data-url="{% url 'delete_user' %}?user_id={{ user.4 }}" data-username="{{ user.1 }}" data-userid="{{ user.4 }}" data-userrole="HR">
-                            <i class="fas fa-trash-alt"></i>
-                        </button>
-                    </div>
+              <div class="col-md-4 mb-3">
+                <div class="card card-custom p-3">
+                  <div class="card-body">
+                    <p class="card-text"><strong>ID:</strong> {{ user.4 }}</p>
+                    <p class="card-text"><strong>Username:</strong> {{ user.1 }}</p>
+                    <p class="card-text"><strong>Job Title:</strong> {{ user.6 }}</p>
+                    <p class="card-text"><strong>Job Position:</strong> {{ user.7 }}</p>
+                    <!-- Delete button triggers modal confirmation -->
+                    <button type="button" class="btn btn-sm btn-danger delete-user-btn" data-toggle="modal" data-target="#confirmDeleteModal" data-url="{% url 'delete_user' %}?user_id={{ user.4 }}" data-username="{{ user.1 }}" data-userid="{{ user.4 }}" data-userrole="HR">
+                      <i class="fas fa-trash-alt"></i>
+                    </button>
+                  </div>
                 </div>
-            </div>
-            {% empty %}
-            <div class="col-md-12">
-                <p>No HR users found.</p>
-            </div>
+              </div>
             {% endfor %}
+          </div>
         {% else %}
-            <div class="col-md-12">
-                <p>No HR users found.</p>
-            </div>
+          <p>No HR users found.</p>
         {% endif %}
+      </div>
     </div>
-</div>
-
-<!-- Employee Users Section -->
-<div class="mb-4">
-    <h4 class="section-title">Employee Users</h4>
-    <div class="row">
+    
+    <!-- Employee Users Tab -->
+    <div class="tab-pane fade" id="employee" role="tabpanel" aria-labelledby="employee-tab">
+      <div class="mt-4">
         {% if employee_users %}
+          <div class="row">
             {% for user in employee_users %}
-            <div class="col-md-4 mb-3">
-                <div class="card glass-card p-3">
-                    <div class="card-body">
-                        <p class="card-text"><strong>ID:</strong> {{ user.4 }}</p>
-                        <p class="card-text"><strong>Username:</strong> {{ user.1 }}</p>
-                        <!-- Delete button triggers modal confirmation -->
-                        <button type="button" class="btn btn-sm btn-danger delete-user-btn" data-toggle="modal" data-target="#confirmDeleteModal" data-url="{% url 'delete_user' %}?user_id={{ user.4 }}" data-username="{{ user.1 }}" data-userid="{{ user.4 }}" data-userrole="Employee">
-                            <i class="fas fa-trash-alt"></i>
-                        </button>
-                    </div>
+              <div class="col-md-4 mb-3">
+                <div class="card card-custom p-3">
+                  <div class="card-body">
+                    <p class="card-text"><strong>ID:</strong> {{ user.4 }}</p>
+                    <p class="card-text"><strong>Username:</strong> {{ user.1 }}</p>
+                    <p class="card-text"><strong>Job Title:</strong> {{ user.6 }}</p>
+                    <p class="card-text"><strong>Job Position:</strong> {{ user.7 }}</p>
+                    <!-- Delete button triggers modal confirmation -->
+                    <button type="button" class="btn btn-sm btn-danger delete-user-btn" data-toggle="modal" data-target="#confirmDeleteModal" data-url="{% url 'delete_user' %}?user_id={{ user.4 }}" data-username="{{ user.1 }}" data-userid="{{ user.4 }}" data-userrole="Employee">
+                      <i class="fas fa-trash-alt"></i>
+                    </button>
+                  </div>
                 </div>
-            </div>
-            {% empty %}
-            <div class="col-md-12">
-                <p>No Employee users found.</p>
-            </div>
+              </div>
             {% endfor %}
+          </div>
         {% else %}
-            <div class="col-md-12">
-                <p>No Employee users found.</p>
-            </div>
+          <p>No Employee users found.</p>
         {% endif %}
+      </div>
     </div>
+  </div>
 </div>
 
 <!-- Modal for Delete Confirmation -->
@@ -157,28 +220,7 @@
 </div>
 
 <script>
-    $(function () {
-    // Delete button click handler to populate modal
-    $('.delete-user-btn').on('click', function () {
-      var baseUrl = $(this).data('url'); // Base URL from data-url
-      var userid = $(this).data('userid'); // User ID from data-userid
-      var username = $(this).data('username');
-      var userrole = $(this).data('userrole');
-
-      // Construct the full delete URL with userid as a GET parameter
-      var deleteUrl = baseUrl + '&user_id=' + userid;
-
-      // Set the href attribute of the delete button in the modal
-      $('#confirmDeleteBtn').attr('href', deleteUrl);
-
-      // Populate the modal message with user details
-      $('#deleteModalMessage').text('Are you sure you want to delete ' + userrole + ' user "' + username + '" (ID: ' + userid + ')?');
-    });
-  });
-  
   $(function () {
-    $('[data-toggle="tooltip"]').tooltip();
-
     // Delete button click handler to populate modal
     $('.delete-user-btn').on('click', function () {
       var deleteUrl = $(this).data('url');

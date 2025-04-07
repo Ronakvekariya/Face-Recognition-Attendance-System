@@ -117,7 +117,7 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
-STATIC_URL = 'static/'
+
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
@@ -136,6 +136,14 @@ DATABASES = {
     }
 }
 
+PROJECT_ROOT = os.path.join(os.path.dirname(__file__), '..')
+SITE_ROOT = PROJECT_ROOT
+
+
+MEDIA_ROOT = os.path.join(SITE_ROOT, 'media')
+MEDIA_URL = '/media/'
+
+STATIC_URL = 'static/'
 # Add this if it's not already present
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'static'),
@@ -143,3 +151,4 @@ STATICFILES_DIRS = [
 
 # This is required in production (for `collectstatic` command)
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+

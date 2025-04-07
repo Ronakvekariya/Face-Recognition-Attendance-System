@@ -1,5 +1,4 @@
 {% load dict_extras %}
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -13,120 +12,121 @@
   <!-- Google Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
   <style>
+    /* Global Styles */
     body {
       font-family: 'Poppins', sans-serif;
-      background: linear-gradient(135deg, #e0f7fa, #f1f8e9);
+      background: #f8f9fa;
+      color: #444;
+      margin: 0;
+      padding: 0;
+      font-size: 16px;
+      line-height: 1.6;
     }
+    
+    /* Navbar Styling */
     .navbar-custom {
-      background-color: #007bff;
+      background-color: #ffffff;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     }
-    .search-input {
-      width: 500px;
+    .navbar-brand, .navbar-text, .nav-link, .btn-outline-primary {
+      color: #0056b3 !important;
+      font-size: 18px;
     }
-    .sidebar {
-      height: 100vh;
-      width: 250px;
-      background: rgba(255, 255, 255, 0.2);
-      backdrop-filter: blur(10px);
-      box-shadow: 2px 0px 10px rgba(0, 0, 0, 0.1);
+    .navbar-brand:hover, .nav-link:hover {
+      color: #004494 !important;
     }
-    .sidebar .nav-link {
-      color: #333;
-      font-weight: 500;
-    }
-    .sidebar .nav-link:hover {
-      background: rgba(255, 255, 255, 0.4);
-      border-radius: 5px;
-    }
-    .card-custom {
-      background: rgba(255, 255, 255, 0.3);
-      backdrop-filter: blur(10px);
-      border: none;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    }
-    .container {
+    
+    /* Container Styling */
+    .container-custom {
       max-width: 800px;
-      background: rgba(255, 255, 255, 0.35);
-      backdrop-filter: blur(14px);
+      background: #ffffff;
       padding: 30px;
-      border-radius: 12px;
-      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.12);
-      transition: all 0.3s ease-in-out;
+      border-radius: 10px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.05);
       margin-top: 30px;
     }
+    
+    /* Status Alert */
     .status {
-      background: rgba(0, 123, 255, 0.12);
-      color: #007bff;
-      padding: 12px;
-      border-radius: 8px;
-      text-align: center;
-      font-size: 16px;
-      font-family: 'Poppins', sans-serif;
+      background: #ffffff;
+      border: 1px solid #dee2e6;
+      color: #444;
       font-weight: 500;
+      border-radius: 10px;
+      padding: 1rem;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+      text-align: center;
       margin-bottom: 20px;
     }
+    
+    /* Form Labels */
     .form-group label {
       font-weight: 500;
       color: #444;
       font-size: 16px;
-      font-family: 'Poppins', sans-serif;
     }
+    
+    /* Form Controls */
     .form-control {
-      background: rgba(255, 255, 255, 0.6);
-      border: 1px solid rgba(0, 0, 0, 0.1);
-      border-radius: 10px;
-      padding: 12px;
-      font-size: 15px;
-      font-family: 'Poppins', sans-serif;
+      background: #ffffff;
+      border: 1px solid #ced4da;
+      border-radius: 30px;
+      padding: 0.5rem 0.75rem;
+      font-size: 16px;
       transition: all 0.3s ease-in-out;
     }
     .form-control:focus {
-      background: rgba(255, 255, 255, 0.8);
       box-shadow: 0 0 8px rgba(0, 123, 255, 0.4);
-      border-color: #007bff;
+      border-color: #0056b3;
       outline: none;
     }
+    
+    /* Button Styling */
     .btn-primary {
-      background: linear-gradient(135deg, #007bff, #0056b3);
-      border: none;
+      padding: 0.5rem 1.5rem;
       font-weight: 600;
-      padding: 12px 28px;
-      border-radius: 10px;
-      font-size: 16px;
-      font-family: 'Poppins', sans-serif;
-      transition: all 0.3s ease-in-out;
+      background-color: #0056b3;
+      border: none;
+      border-radius: 30px;
     }
     .btn-primary:hover {
-      background: linear-gradient(135deg, #0056b3, #003d80);
-      transform: scale(1.04);
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+      background-color: #004494;
     }
     .btn-secondary {
+      padding: 0.5rem 1.5rem;
       font-weight: 600;
-      padding: 12px 28px;
-      border-radius: 10px;
+      border-radius: 30px;
       font-size: 16px;
-      font-family: 'Poppins', sans-serif;
-      transition: all 0.3s ease-in-out;
     }
+    
+    /* Tooltip Icon */
     .tooltip-icon {
       margin-left: 5px;
-      color: #007bff;
+      color: #0056b3;
       cursor: pointer;
+    }
+    
+    /* Modal Styling */
+    .modal-content {
+      border-radius: 10px;
     }
   </style>
 </head>
 <body>
-  <nav class="navbar navbar-expand-lg navbar-custom text-white">
-    <a class="navbar-brand text-white" href="{% url 'hr_dashboard' %}">HR Dashboard</a>
+  <!-- Navbar -->
+  <nav class="navbar navbar-expand-lg navbar-custom">
+    <a class="navbar-brand" href="{% url 'hr_dashboard' %}">HR Dashboard</a>
     <div class="collapse navbar-collapse">
-      <form class="form-inline mx-auto">
-        <input class="form-control search-input" type="search" placeholder="Search Employee..." aria-label="Search">
-        <button class="btn btn-light ml-2" type="submit">Search</button>
+      <form class="form-inline mx-auto" method="POST" action="{% url 'employee_detail' %}">
+        {% csrf_token %}
+        <input class="form-control search-input" type="search" name="search" placeholder="Search Employee..." aria-label="Search">
+        <button class="btn btn-outline-primary ml-2" type="submit">Search</button>
       </form>
     </div>
   </nav>
-  <div class="container">
+  
+  <!-- Main Container -->
+  <div class="container container-custom">
     {% if status %}
       <div class="status">
         {{ status }}

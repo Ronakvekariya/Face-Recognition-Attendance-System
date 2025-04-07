@@ -1,0 +1,78 @@
+{% if leave_requests %}
+  <table class="table table-bordered">
+    <thead class="thead-light">
+      <tr>
+        <th scope="col">Request Date</th>
+        <th scope="col">Leave Type</th>
+        <th scope="col">Status</th>
+        <th scope="col">Explanation</th>
+        <th scope="col">Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for leave in leave_requests %}
+      <tr>
+        <td>{{ leave.date }}</td>
+        <td>{{ leave.leave_type }}</td>
+        <td>
+          {% if leave.status == 'approved' %}
+            <span class="badge badge-success">Approved</span>
+          {% elif leave.status == 'rejected' %}
+            <span class="badge badge-danger">Rejected</span>
+          {% else %}
+            <span class="badge badge-warning">Pending</span>
+          {% endif %}
+        </td>
+        <td>{{ leave.explanation }}</td>
+        <td>
+          {% if leave.status == "pending" %}
+            <button class="btn btn-success btn-sm action-btn" data-id="{{ leave.id }}" data-date="{{ leave.date }}" data-action="approve">Approve</button>
+            <button class="btn btn-danger btn-sm action-btn" data-id="{{ leave.id }}" data-date="{{ leave.date }}" data-action="reject">Reject</button>
+          {% else %}
+            &ndash;
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <!-- Pagination Controls -->
+  <nav>
+    <ul class="pagination justify-content-center">
+      {% if leave_requests.has_previous %}
+        <li class="page-item">
+          <a class="page-link" href="#" data-page="{{ leave_requests.previous_page_number }}">Previous</a>
+        </li>
+      {% else %}
+        <li class="page-item disabled">
+          <span class="page-link">Previous</span>
+        </li>
+      {% endif %}
+
+      {% for num in leave_requests.paginator.page_range %}
+        {% if leave_requests.number == num %}
+          <li class="page-item active">
+            <span class="page-link">{{ num }}</span>
+          </li>
+        {% else %}
+          <li class="page-item">
+            <a class="page-link" href="#" data-page="{{ num }}">{{ num }}</a>
+          </li>
+        {% endif %}
+      {% endfor %}
+
+      {% if leave_requests.has_next %}
+        <li class="page-item">
+          <a class="page-link" href="#" data-page="{{ leave_requests.next_page_number }}">Next</a>
+        </li>
+      {% else %}
+        <li class="page-item disabled">
+          <span class="page-link">Next</span>
+        </li>
+      {% endif %}
+    </ul>
+  </nav>
+{% else %}
+  <div class="alert alert-info">No leave requests found.</div>
+{% endif %}

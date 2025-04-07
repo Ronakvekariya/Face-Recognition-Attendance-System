@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Employee Detail Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Bootstrap CSS -->
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+  <style>
+    /* Global Styles */
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: #f8f9fa;
+      color: #444;
+      margin: 0;
+      padding: 0;
+      font-size: 16px;
+      line-height: 1.6;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      color: #222;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+    }
+    
+    /* Navbar Styles */
+    .navbar-custom {
+      background-color: #ffffff;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .navbar-brand, .nav-link, .btn-outline-primary {
+      color: #0056b3 !important;
+      font-size: 18px;
+    }
+    .navbar-brand:hover, .nav-link:hover {
+      color: #004494 !important;
+    }
+    
+    /* Search Input */
+    .search-input {
+      width: 100%;
+      max-width: 400px;
+      border-radius: 30px;
+      border: 1px solid #ced4da;
+      padding: 0.5rem 0.75rem;
+    }
+    
+    /* Card & Employee Profile Styles */
+    .card-custom {
+      background: #ffffff;
+      border: none;
+      border-radius: 10px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      overflow: hidden;
+      margin-bottom: 1rem;
+    }
+    .employee-profile .profile-photo {
+      background-position: center;
+      background-size: cover;
+      height: 300px;
+    }
+    .employee-profile .card-body h4 {
+      color: #0056b3;
+      margin-bottom: 0.5rem;
+    }
+    .employee-profile .card-body p {
+      font-size: 1.1rem;
+      margin-bottom: 0.5rem;
+    }
+    
+    /* Spinner Overlay */
+    .spinner-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(255,255,255,0.7);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 100;
+    }
+    
+    /* Accordion Styles */
+    .accordion .card {
+      margin-bottom: 1rem;
+    }
+    .accordion .card-header {
+      background: #ffffff;
+      border-bottom: 1px solid #dee2e6;
+      padding: 0;
+    }
+    .accordion .card-header h5 button {
+      width: 100%;
+      padding: 1rem 1.5rem;
+      text-align: left;
+      background: none;
+      border: none;
+      font-size: 18px;
+      color: #0056b3;
+    }
+    .accordion .card-header h5 button:hover {
+      background-color: #f1f1f1;
+    }
+    
+    /* Filter Form Styles */
+    .form-control, .btn-primary {
+      border-radius: 30px;
+    }
+    .btn-primary {
+      padding: 0.5rem 1.5rem;
+      font-weight: 600;
+      background-color: #0056b3;
+      border: none;
+    }
+    .btn-primary:hover {
+      background-color: #004494;
+    }
+  </style>
+</head>
+<body>
+  <!-- Navbar -->
+  <nav class="navbar navbar-expand-lg navbar-custom">
+    <a class="navbar-brand" href="{% url 'hr_dashboard' %}">HR Dashboard</a>
+    <div class="collapse navbar-collapse">
+      <form class="form-inline mx-auto" id="navbarSearchForm" method="POST" action="{% url 'employee_detail' %}">
+        {% csrf_token %}
+        <input id="navbarSearchInput" name="search" class="form-control search-input" type="search" placeholder="Search Employee..." aria-label="Search">
+        <button class="btn btn-outline-primary ml-2" type="submit">Search</button>
+      
+        <!-- Suggestions dropdown container -->
+        <div id="suggestions" class="list-group"
+             style="position: absolute; z-index: 1000; width: 100%; max-width: 400px; display: none;">
+        </div>
+      </form>
+    </div>
+    <a href="{% url 'logout' %}" class="btn btn-outline-primary">Logout</a>
+  </nav>
+  
+  <!-- Employee Profile Section -->
+  <div class="container mt-4">
+    <div class="card employee-profile card-custom">
+      <div class="row no-gutters">
+        <div class="col-md-4 profile-photo" style="background-image: url('{{ MEDIA_URL }}{{ employee_details.photo_url }}');">
+          <!-- Option: Use an <img> tag if needed -->
+        </div>
+        <div class="col-md-8">
+          <div class="card-body">
+            <h4 class="card-title">{{ employee_details.name }}</h4>
+            <p class="card-text"><i class="fas fa-briefcase text-secondary mr-2"></i>{{ employee_details.job_title }}</p>
+            <p class="card-text"><i class="fas fa-envelope text-secondary mr-2"></i>{{ employee_details.email }}</p>
+            <p class="card-text"><i class="fas fa-phone-alt text-secondary mr-2"></i>{{ employee_details.phone }}</p>
+            <hr style="border-top: 1px solid #ddd;">
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Dashboard Sections -->
+    <h2 class="mb-4">Employee Details: {{ employee_id }}</h2>
+    <div class="accordion" id="employeeAccordion">
+      <!-- Charts & Analytics Section -->
+      <div class="card card-custom">
+        <div class="card-header" id="headingCharts">
+          <h5 class="mb-0">
+            <button class="btn btn-link" type="button" data-toggle="collapse" data-target="#collapseCharts" aria-expanded="true" aria-controls="collapseCharts">
+              Charts & Analytics
+            </button>
+          </h5>
+        </div>
+        <div id="collapseCharts" class="collapse show" aria-labelledby="headingCharts" data-parent="#employeeAccordion">
+          <div class="card-body position-relative" id="chartsSection">
+            <div id="chartsSpinner" class="spinner-overlay" style="display: none;">
+              <div class="spinner-border text-primary" role="status">
+                <span class="sr-only">Loading...</span>
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-md-6">
+                <canvas id="pieChart"></canvas>
+              </div>
+              <div class="col-md-6">
+                <canvas id="barChart"></canvas>
+              </div>
+            </div>
+            <div class="row mt-3">
+              <div class="col-md-12 text-center">
+                <h5>Total Leave Requests: <span id="totalRequestsCount">0</span></h5>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Leave Requests Section -->
+      <div class="card card-custom">
+        <div class="card-header" id="headingLeaveRequests">
+          <h5 class="mb-0">
+            <button class="btn btn-link collapsed" type="button" data-toggle="collapse" data-target="#collapseLeaveRequests" aria-expanded="false" aria-controls="collapseLeaveRequests">
+              Leave Requests
+            </button>
+          </h5>
+        </div>
+        <div id="collapseLeaveRequests" class="collapse" aria-labelledby="headingLeaveRequests" data-parent="#employeeAccordion">
+          <div class="card-body position-relative" id="leaveTableSection">
+            <div id="leaveTableSpinner" class="spinner-overlay" style="display: none;">
+              <div class="spinner-border text-primary" role="status">
+                <span class="sr-only">Loading...</span>
+              </div>
+            </div>
+            <form id="leaveFilterForm" method="GET" action="{% url 'leave_requests_ajax' employee_id=employee_id %}">
+              <div class="form-row">
+                <div class="col-md-4 mb-3">
+                  <input type="text" class="form-control" name="status" placeholder="Status">
+                </div>
+                <div class="col-md-4 mb-3">
+                  <input type="text" class="form-control" name="leave_type" placeholder="Leave Type">
+                </div>
+                <div class="col-md-4 mb-3">
+                  <button type="submit" class="btn btn-primary btn-block">Filter</button>
+                </div>
+              </div>
+            </form>
+            <div id="leaveRequestTable">
+              {% include "leave_request_table.html" %}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Error Modal -->
+  <div class="modal fade" id="errorModal" tabindex="-1" role="dialog" aria-labelledby="errorModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="errorModalLabel">Error</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body" id="errorModalBody"></div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- jQuery, Popper.js, Bootstrap JS -->
+  <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script>
+    // CSRF token setup for AJAX
+    function getCookie(name) {
+      let cookieValue = null;
+      if (document.cookie && document.cookie !== '') {
+        let cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+          let cookie = jQuery.trim(cookies[i]);
+          if (cookie.substring(0, name.length + 1) === (name + '=')) {
+            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+            break;
+          }
+        }
+      }
+      return cookieValue;
+    }
+    const csrftoken = getCookie('csrftoken');
+    const employeeDetailUrl = "{% url 'employee_detail' %}";
+  
+    function handleAjaxError(error) {
+      $('#errorModalBody').text("An error occurred: " + error);
+      $('#errorModal').modal('show');
+    }
+  
+    function loadChartData() {
+      $('#chartsSpinner').show();
+      $.ajax({
+        url: "{% url 'chart_data' employee_id %}",
+        method: "GET",
+        headers: { 'X-CSRFToken': csrftoken },
+        success: function(data) {
+          renderPieChart(data.pie);
+          renderBarChart(data.bar);
+          $('#totalRequestsCount').text(data.total_requests);
+        },
+        error: function(xhr, status, error) {
+          handleAjaxError(error);
+        },
+        complete: function() {
+          $('#chartsSpinner').hide();
+        }
+      });
+    }
+  
+    function renderPieChart(pieData) {
+      let ctx = document.getElementById('pieChart').getContext('2d');
+      new Chart(ctx, {
+        type: 'pie',
+        data: {
+          labels: ['Approved', 'Rejected', 'Pending'],
+          datasets: [{
+            data: [pieData.approved, pieData.rejected, pieData.pending],
+            backgroundColor: ['#28a745', '#dc3545', '#ffc107']
+          }]
+        },
+        options: { responsive: true, tooltips: { enabled: true } }
+      });
+    }
+  
+    function renderBarChart(barData) {
+      let ctx = document.getElementById('barChart').getContext('2d');
+      let labels = [];
+      let presentDays = [];
+      barData.forEach(function(item) {
+        labels.push(item.month);
+        presentDays.push(item.present_days);
+      });
+      new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: labels,
+          datasets: [{
+            label: 'Present Days',
+            data: presentDays,
+            backgroundColor: '#007bff'
+          }]
+        },
+        options: { responsive: true, tooltips: { enabled: true } }
+      });
+    }
+  
+    function loadLeaveRequestTable(page = 1) {
+      $('#leaveTableSpinner').show();
+      $.ajax({
+        url: "{% url 'leave_requests_ajax' employee_id %}",
+        method: "GET",
+        data: $('#leaveFilterForm').serialize() + "&page=" + page,
+        headers: { 'X-CSRFToken': csrftoken },
+        success: function(data) {
+          $('#leaveRequestTable').html(data.table_html);
+        },
+        error: function(xhr, status, error) {
+          handleAjaxError(error);
+        },
+        complete: function() {
+          $('#leaveTableSpinner').hide();
+        }
+      });
+    }
+  
+    $(document).ready(function() {
+      loadChartData();
+  
+      $('#leaveFilterForm').on('submit', function(e) {
+        e.preventDefault();
+        loadLeaveRequestTable();
+      });
+  
+      $('#leaveRequestTable').on('click', '.pagination a', function(e) {
+        e.preventDefault();
+        let page = $(this).data('page');
+        loadLeaveRequestTable(page);
+      });
+  
+      $('#navbarSearchInput').on('keyup', function () {
+      let query = $(this).val();
+      if (query.length >= 2) {
+        $.ajax({
+          url: "{% url 'search_suggestions' %}",
+          method: "GET",
+          data: { query: query },
+          headers: { 'X-CSRFToken': csrftoken },
+          success: function (data) {
+            let suggestionsHtml = '';
+            if (data.length > 0) {
+              data.forEach(function (item) {
+                suggestionsHtml += `
+                  <form method="POST" action="${employeeDetailUrl}" class="suggestion-form mb-1">
+                    <input type="hidden" name="csrfmiddlewaretoken" value="${csrftoken}">
+                    <input type="hidden" name="search" value="${item.employee_id}">
+                    <button type="submit" class="list-group-item list-group-item-action">
+                      <strong>${item.name}</strong> - ${item.job_title}
+                    </button>
+                  </form>
+                `;
+              });
+            } else {
+              suggestionsHtml = '<div class="list-group-item">No suggestions found</div>';
+            }
+            $('#suggestions').html(suggestionsHtml).show();
+          },
+          error: function (xhr, status, error) {
+            handleAjaxError(error);
+          }
+        });
+      } else {
+        $('#suggestions').hide();
+      }
+    });
+
+    $('#navbarSearchInput').on('blur', function () {
+      setTimeout(function () {
+        $('#suggestions').hide();
+      }, 200);
+    });
+  });
+  </script>
+</body>
+</html>

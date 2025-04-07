@@ -18,80 +18,89 @@
     /* Global Styles */
     body {
       font-family: 'Poppins', sans-serif;
-      background: linear-gradient(135deg, #f5f7fa, #c3cfe2);
+      background: #f8f9fa;
+      color: #444; /* Slightly darker text for readability */
       margin: 0;
       padding: 0;
+      font-size: 16px;
+      line-height: 1.6;
+    }
+    
+    h1, h2, h3, h4, h5, h6 {
+      color: #222; /* Darker headings for contrast */
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+    }
+    
+    h2 {
+      font-size: 24px;
     }
     
     /* Navbar Styles */
     .navbar-custom {
-      background-color: #0056b3;
+      background-color: #ffffff;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     }
-    .navbar-brand, .navbar-text, .nav-link, .btn-outline-light {
-      color: #fff !important;
+    .navbar-brand, .navbar-text, .nav-link, .btn-outline-primary {
+      color: #0056b3 !important;
+      font-size: 18px;
+    }
+    .navbar-brand:hover, .nav-link:hover {
+      color: #004494 !important;
     }
     
     /* Search Input */
     .search-input {
       width: 100%;
-      max-width: 500px;
+      max-width: 400px;
       border-radius: 30px;
-    }
-    
-    /* Sidebar (if used later) */
-    .sidebar {
-      height: 100vh;
-      width: 250px;
-      background: rgba(255, 255, 255, 0.2);
-      backdrop-filter: blur(10px);
-      box-shadow: 2px 0px 10px rgba(0, 0, 0, 0.1);
-    }
-    .sidebar .nav-link {
-      color: #333;
-      font-weight: 500;
-    }
-    .sidebar .nav-link:hover {
-      background: rgba(255, 255, 255, 0.4);
-      border-radius: 5px;
+      border: 1px solid #ced4da;
+      padding: 0.5rem 0.75rem;
     }
     
     /* Card & Accordion Styles */
     .card-custom {
-      background: rgba(255, 255, 255, 0.3);
-      backdrop-filter: blur(10px);
+      background: #ffffff;
       border: none;
       border-radius: 10px;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-      transition: transform 0.3s ease;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      margin-bottom: 1rem;
     }
     .card-custom:hover {
-      transform: translateY(-5px);
+      transform: translateY(-3px);
+      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
     }
     
-    .card-header.bg-light {
-      background: rgba(255, 255, 255, 0.8);
-      border-bottom: 1px solid #ddd;
+    .card-header {
+      background: #ffffff;
+      border-bottom: 1px solid #dee2e6;
+      border-top-left-radius: 10px;
+      border-top-right-radius: 10px;
       padding: 0;
     }
-    
-    .card-header h5 {
-      margin: 0;
-    }
-    
     .card-header button {
-      padding: 15px 20px;
-      transition: background 0.3s ease;
+      width: 100%;
+      padding: 1rem 1.5rem;
+      text-align: left;
+      background: none;
+      border: none;
+      outline: none;
+      font-weight: 600;
+      color: #0056b3;
+      font-size: 18px;
     }
     .card-header button:hover {
-      background: rgba(0, 123, 255, 0.1);
+      background-color: #f1f1f1;
     }
     
     /* Leave Request Styles */
     .leave-request {
-      background: rgba(255, 255, 255, 0.6);
-      border: none;
+      background: #fdfdfd;
+      border: 1px solid #e2e2e2;
       border-radius: 10px;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      padding: 1rem;
+      margin-bottom: 1rem;
     }
     
     /* Filter Form Styles */
@@ -99,12 +108,13 @@
       border-radius: 30px;
     }
     .btn-primary {
-      padding: 8px 20px;
+      padding: 0.5rem 1.5rem;
       font-weight: 600;
-      transition: background 0.3s ease;
+      background-color: #0056b3;
+      border: none;
     }
     .btn-primary:hover {
-      background: #004494;
+      background-color: #004494;
     }
     
     /* Responsive Adjustments */
@@ -113,42 +123,36 @@
         max-width: 100%;
       }
     }
-
-        .flex-big {
-        flex: 3; /* Takes up the most space */
-    }
-
-    .flex-moderate {
-        flex: 2; /* Takes up moderate space */
-    }
-
-    .flex-small {
-        flex: 1; /* Takes up the least space */
-    }
-
+  
+    /* Flex classes for user info layout */
+    .flex-big { flex: 3; }
+    .flex-moderate { flex: 2; }
+    .flex-small { flex: 1; }
   </style>
+  
 </head>
 <body>
   <!-- Navbar -->
   <nav class="navbar navbar-expand-lg navbar-custom">
     <a class="navbar-brand" href="{% url 'hr_dashboard' %}">HR Dashboard</a>
     <div class="collapse navbar-collapse">
-      <form class="form-inline mx-auto">
-        <input class="form-control search-input" type="search" placeholder="Search Employee..." aria-label="Search">
-        <button class="btn btn-light ml-2" type="submit">Search</button>
+      <form class="form-inline mx-auto" method="POST" action="{% url 'employee_detail' %}">
+        {% csrf_token %}
+        <input class="form-control search-input" type="search" name="search" placeholder="Search Employee..." aria-label="Search">
+        <button class="btn btn-outline-primary ml-2" type="submit">Search</button>
       </form>
     </div>
-    <a href="{% url 'logout' %}" class="btn btn-outline-light">Logout</a>
+    <a href="{% url 'logout' %}" class="btn btn-outline-primary">Logout</a>
   </nav>
 
   {% block content %}
   <div class="container mt-4">
-      <h2 class="mb-4">Leave Requests</h2>
+      <h2 class="mb-4 text-center">Leave Requests</h2>
 
       <!-- Filter Section -->
       <form method="POST" action="{% url 'leave_requests' %}" class="mb-4">
         {% csrf_token %}
-          <div class="row">
+          <div class="form-row">
               <div class="col-md-3 mb-2">
                   <select class="form-control" name="leave_type">
                       <option value="">All Status</option>
@@ -183,17 +187,16 @@
       <div class="accordion" id="leaveRequestsAccordion">
           {% regroup leave_requests by id as user_leave_requests %}
           {% for user in user_leave_requests %}
-          <div class="card card-custom mb-3">
-            <div class="card-header bg-light" id="heading{{ user.grouper }}">
+          <div class="card card-custom">
+            <div class="card-header" id="heading{{ user.grouper }}">
               <h5 class="mb-0">
                   <button
-                  class="btn btn-outline-primary w-100 text-left font-weight-bold d-flex justify-content-between align-items-center"
-                  type="button"
-                  data-toggle="collapse"
-                  data-target="#collapse{{ user.grouper }}"
-                  aria-expanded="true"
-                  aria-controls="collapse{{ user.grouper }}">
-              
+                    type="button"
+                    data-toggle="collapse"
+                    data-target="#collapse{{ user.grouper }}"
+                    aria-expanded="true"
+                    aria-controls="collapse{{ user.grouper }}"
+                    class="d-flex justify-content-between align-items-center">
                       <span class="user-info flex-big">
                           <i class="fas fa-user-circle mr-2"></i>
                           {{ user.list.0.full_name }}
@@ -206,188 +209,161 @@
                       </span>
                       <span class="badge badge-info flex-small">ID: {{ user.grouper }}</span>
                   </button>
-              
               </h5>
-          </div>
-          
-            
-              <div id="collapse{{ user.grouper }}" class="collapse" aria-labelledby="heading{{ user.grouper }}" data-parent="#leaveRequestsAccordion">
-                <div class="leave-request mb-3 p-3 border rounded">
-                  <div class="row">
+            </div>
+            <div id="collapse{{ user.grouper }}" class="collapse" aria-labelledby="heading{{ user.grouper }}" data-parent="#leaveRequestsAccordion">
+              <div class="card-body">
+                  <!-- Contact Information -->
+                  <div class="leave-request">
+                    <div class="row">
                       <div class="col-md-6">
-                          <strong>Mobile:</strong>
-                          <span>{{ user.list.0.mobile }}</span>
+                        <strong>Mobile:</strong>
+                        <span>{{ user.list.0.mobile }}</span>
                       </div>
                       <div class="col-md-6">
-                          <strong>Email:</strong>
-                          <span>{{ user.list.0.email }}</span>
+                        <strong>Email:</strong>
+                        <span>{{ user.list.0.email }}</span>
                       </div>
+                    </div>
                   </div>
-                  </div>
-                  <div class="card-body">
-                      {% for leave in user.list %}
-                        {% if leave.status == 'pending' %}
-                        <div class="leave-request mb-3 p-3 border rounded">
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <strong>Request Date:</strong>
-                                    <span>{{ leave.date }}</span>
-                                </div>
-                                <div class="col-md-6">
-                                    <strong>Leave Type:</strong>
-                                    <span>{{ leave.leave_type }}</span>
-                                </div>
-                            </div>
-                            <!-- <div class="row mt-2">
-                                <div class="col-md-6">
-                                    <strong>Job Position:</strong>
-                                    <span>{{ leave.job_position }}</span>
-                                </div>
-                                <div class="col-md-6">
-                                    <strong>Job Title:</strong>
-                                    <span>{{ leave.job_title }}</span>
-                                </div>
-                            </div> -->
-                            <div class="row mt-2">
-                                <div class="col-md-12">
-                                    <strong>Explanation:</strong>
-                                    <span>{{ leave.message }}</span>
-                                </div>
-                            </div>
-                          <!-- Uncomment below if date info is needed -->
-                          <!-- <p><strong>From:</strong> {{ leave.start_date }} <strong>To:</strong> {{ leave.end_date }}</p> -->
-
-                          <div class="col-md-12 text-right mt-2">
-                            {% if leave.status == "pending" %}
-                                <button class="btn btn-success btn-sm action-btn mr-2" data-id="{{ leave.id }}" data-date="{{leave.date}}" data-action="approve">Approve</button>
-                                <button class="btn btn-danger btn-sm action-btn" data-id="{{ leave.id }}" data-date="{{leave.date}}" data-action="reject">Reject</button>
-                            {% else %}
-                                <span class="badge {% if leave.status == 'approved' %}badge-success{% else %}badge-danger{% endif %}">
-                                    {{ leave.status|title }}
-                                </span>
-                            {% endif %}
+                  {% for leave in user.list %}
+                    {% if leave.status == 'pending' %}
+                    <div class="leave-request">
+                      <div class="row">
+                        <div class="col-md-6">
+                          <strong>Request Date:</strong>
+                          <span>{{ leave.date }}</span>
+                        </div>
+                        <div class="col-md-6">
+                          <strong>Leave Type:</strong>
+                          <span>{{ leave.leave_type }}</span>
                         </div>
                       </div>
-                      <hr>
-                      {% endif %}
-                      {% endfor %}
-                  </div>
+                      <div class="row mt-2">
+                        <div class="col-md-12">
+                          <strong>Explanation:</strong>
+                          <span>{{ leave.message }}</span>
+                        </div>
+                      </div>
+                      <div class="row mt-2">
+                        <div class="col-md-12 text-right">
+                          <button class="btn btn-success btn-sm action-btn mr-2" data-id="{{ leave.id }}" data-date="{{ leave.date }}" data-action="approve">Approve</button>
+                          <button class="btn btn-danger btn-sm action-btn" data-id="{{ leave.id }}" data-date="{{ leave.date }}" data-action="reject">Reject</button>
+                        </div>
+                      </div>
+                    </div>
+                    <hr>
+                    {% endif %}
+                  {% endfor %}
               </div>
+            </div>
           </div>
           {% endfor %}
       </div>
   </div>
 
- <!-- Rejection Reason Modal -->
-<div class="modal fade" id="rejectionModal" tabindex="-1" role="dialog" aria-labelledby="rejectionModalLabel" aria-hidden="true">
-  <div class="modal-dialog" role="document">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="rejectionModalLabel">Rejection Reason</h5>
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-          <span aria-hidden="true">&times;</span>
-        </button>
-      </div>
-      <div class="modal-body">
-        <textarea id="rejectionReason" class="form-control" rows="4" placeholder="Enter reason for rejection"></textarea>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-        <button type="button" class="btn btn-danger" id="submitRejection">Submit</button>
+  <!-- Rejection Reason Modal -->
+  <div class="modal fade" id="rejectionModal" tabindex="-1" role="dialog" aria-labelledby="rejectionModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="rejectionModalLabel">Rejection Reason</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <textarea id="rejectionReason" class="form-control" rows="4" placeholder="Enter reason for rejection"></textarea>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+          <button type="button" class="btn btn-danger" id="submitRejection">Submit</button>
+        </div>
       </div>
     </div>
   </div>
-</div>
+  {% endblock %}
 
   <!-- JavaScript for AJAX Requests -->
   <script>
-   document.addEventListener("DOMContentLoaded", function() {
-  const actionButtons = document.querySelectorAll(".action-btn");
-  let currentLeaveId = null;
-  let currentLeaveDate = null;
-  let currentAction = null;
-  
-  actionButtons.forEach(button => {
-      button.addEventListener("click", function() {
-          const leaveId = this.getAttribute("data-id");
-          const leaveDate = this.getAttribute("data-date");
-          const action = this.getAttribute("data-action");
+    document.addEventListener("DOMContentLoaded", function() {
+      const actionButtons = document.querySelectorAll(".action-btn");
+      let currentLeaveId = null;
+      let currentLeaveDate = null;
+      let currentAction = null;
+      
+      actionButtons.forEach(button => {
+          button.addEventListener("click", function() {
+              const leaveId = this.getAttribute("data-id");
+              const leaveDate = this.getAttribute("data-date");
+              const action = this.getAttribute("data-action");
+              
+              if (action === "approve") {
+                  fetch("{% url 'update_leave_status' %}", {
+                      method: "POST",
+                      headers: {
+                          "X-CSRFToken": "{{ csrf_token }}",
+                          "Content-Type": "application/json"
+                      },
+                      body: JSON.stringify({ leave_id: leaveId, leave_date: leaveDate, action: action })
+                  })
+                  .then(response => response.json())
+                  .then(data => {
+                      if (data.success) {
+                          location.reload();
+                      } else {
+                          alert("Error: " + data.error);
+                      }
+                  })
+                  .catch(error => {
+                      console.error("Error:", error);
+                      alert("An error occurred while updating the leave status.");
+                  });
+              } else if (action === "reject") {
+                  currentLeaveId = leaveId;
+                  currentLeaveDate = leaveDate;
+                  currentAction = action;
+                  $('#rejectionModal').modal('show');
+              }
+          });
+      });
+      
+      document.getElementById("submitRejection").addEventListener("click", function() {
+          const rejectionReason = document.getElementById("rejectionReason").value.trim();
+          if (!rejectionReason) {
+              alert("Please provide a reason for rejection.");
+              return;
+          }
           
-          // For approval, process immediately
-          if (action === "approve") {
-              fetch("{% url 'update_leave_status' %}", {
-                  method: "POST",
-                  headers: {
-                      "X-CSRFToken": "{{ csrf_token }}",
-                      "Content-Type": "application/json"
-                  },
-                  body: JSON.stringify({ leave_id: leaveId, leave_date: leaveDate, action: action })
+          $('#rejectionModal').modal('hide');
+          
+          fetch("{% url 'update_leave_status' %}", {
+              method: "POST",
+              headers: {
+                  "X-CSRFToken": "{{ csrf_token }}",
+                  "Content-Type": "application/json"
+              },
+              body: JSON.stringify({ 
+                  leave_id: currentLeaveId, 
+                  leave_date: currentLeaveDate, 
+                  action: currentAction,
+                  rejection_reason: rejectionReason 
               })
-              .then(response => response.json())
-              .then(data => {
-                  if (data.success) {
-                      location.reload();
-                  } else {
-                      alert("Error: " + data.error);
-                  }
-              })
-              .catch(error => {
-                  console.error("Error:", error);
-                  alert("An error occurred while updating the leave status.");
-              });
-          }
-          // For rejection, open the modal
-          else if (action === "reject") {
-              currentLeaveId = leaveId;
-              currentLeaveDate = leaveDate;
-              currentAction = action;
-              // Show the rejection modal (Bootstrap will handle the animation)
-              $('#rejectionModal').modal('show');
-          }
-      });
-  });
-  
-  // When the rejection reason is submitted
-  document.getElementById("submitRejection").addEventListener("click", function() {
-      const rejectionReason = document.getElementById("rejectionReason").value.trim();
-      if (!rejectionReason) {
-          alert("Please provide a reason for rejection.");
-          return;
-      }
-      
-      // Close the modal
-      $('#rejectionModal').modal('hide');
-      
-      // Send the fetch request with the rejection reason included
-      fetch("{% url 'update_leave_status' %}", {
-          method: "POST",
-          headers: {
-              "X-CSRFToken": "{{ csrf_token }}",
-              "Content-Type": "application/json"
-          },
-          body: JSON.stringify({ 
-              leave_id: currentLeaveId, 
-              leave_date: currentLeaveDate, 
-              action: currentAction,
-              rejection_reason: rejectionReason 
           })
-      })
-      .then(response => response.json())
-      .then(data => {
-          if (data.success) {
-              location.reload();
-          } else {
-              alert("Error: " + data.error);
-          }
-      })
-      .catch(error => {
-          console.error("Error:", error);
-          alert("An error occurred while updating the leave status.");
+          .then(response => response.json())
+          .then(data => {
+              if (data.success) {
+                  location.reload();
+              } else {
+                  alert("Error: " + data.error);
+              }
+          })
+          .catch(error => {
+              console.error("Error:", error);
+              alert("An error occurred while updating the leave status.");
+          });
       });
-  });
-});
-
+    });
   </script>
-  {% endblock %}
 </body>
 </html>

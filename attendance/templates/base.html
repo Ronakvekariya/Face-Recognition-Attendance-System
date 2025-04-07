@@ -45,9 +45,10 @@
   <nav class="navbar navbar-expand-lg navbar-custom text-white">
     <a class="navbar-brand text-white" href="{% url 'hr_dashboard' %}">HR Dashboard</a>
     <div class="collapse navbar-collapse">
-      <form class="form-inline mx-auto">
-        <input class="form-control search-input" type="search" placeholder="Search Employee..." aria-label="Search">
-        <button class="btn btn-light ml-2" type="submit">Search</button>
+      <form class="form-inline mx-auto" method="POST" action="{% url 'employee_detail' %}">
+        {% csrf_token %}
+        <input class="form-control search-input" type="search" name="search" placeholder="Search Employee..." aria-label="Search">
+        <button class="btn btn-outline-primary ml-2" type="submit">Search</button>
       </form>
     </div>
     <a href="{% url 'logout' %}" class="btn btn-outline-light">Logout</a>

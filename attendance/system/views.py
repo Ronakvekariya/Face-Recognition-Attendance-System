@@ -8,53 +8,13 @@ import calendar
 import json
 from collections import defaultdict
 from django.http import JsonResponse
-from django.views.decorators.http import require_POST
+from django.views.decorators.http import require_POST ,require_GET
 from django.views.decorators.csrf import csrf_exempt
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+from django.template.loader import render_to_string
 
 
-
-def login_view(request):
-    if request.method == 'POST':
-        form = LoginForm(request.POST)
-        if form.is_valid():
-            Id = form.cleaned_data['Id']    
-            username = form.cleaned_data['username']
-            password = form.cleaned_data['password']
-
-            with connection.cursor() as cursor:
-                cursor.execute("SELECT role FROM system_user WHERE employee_id = %s AND username=%s AND password=%s", [Id, username, password])
-                user = cursor.fetchone()
-
-            if user:
-                role = user[0]
-                request.session['Id'] = Id
-                request.session['username'] = username
-                request.session['role'] = role
-
-                if role == 'HR':
-                    return redirect('hr_dashboard')
-                else:
-                    return redirect('employee_dashboard')
-
-            return HttpResponse("Invalid username or password")
-
-    else:
-        form = LoginForm()
-
-    return render(request, 'login.html', {'form': form})
-
-def logout_view(request):
-    request.session.flush()
-    return redirect('login')
-
-def hr_dashboard(request):
-    if request.session.get('role') == 'HR':
-        return render(request, 'hr_dashboard.html')
-    return HttpResponse("Unauthorized", status=403)
-
-def employee_dashboard(request):
-    if request.session.get('role') == 'Employee':
+def employee_dashboard_details(request):
         attendance_data = []  # Placeholder for attendance data. Add your logic to fetch data.
         with connection.cursor() as cursor:
             cursor.execute("SELECT attendance FROM attendance_table where employee_id = %s", [request.session.get('Id')])
@@ -128,7 +88,7 @@ def employee_dashboard(request):
                 for month in range(start_date_object.month + 1, end_date_object.month):
                     _, num_days = calendar.monthrange(start_date_object.year, month)
                     for day in range(1, num_days + 1):
-                        date_obj = datetime.date(start_date_object.year, month, day)
+                        date_obj = date(start_date_object.year, month, day)
                         date_str = date_obj.strftime("%Y-%m-%d")
                         if date_obj.weekday() == 5:  # Saturday (Monday=0, ..., Saturday=5)
                             saturday_counter += 1
@@ -208,19 +168,63 @@ def employee_dashboard(request):
 
                 print(month_wise_attendance)
 
-                request.session['month_wise_attendance'] = month_wise_attendance
-                request.session['month_wise_absence_dates'] = month_wise_absence_dates
-                request.session['month_wise_extra_days'] = month_wise_extra_days
+                return month_wise_attendance, month_wise_absence_dates, month_wise_extra_days
+            
+            else:        
+                return None, None, None
 
-            else:
-                print("No attendance data found for the employee")
-                    
+
+def login_view(request):
+    if request.method == 'POST':
+        form = LoginForm(request.POST)
+        if form.is_valid():
+            Id = form.cleaned_data['Id']    
+            username = form.cleaned_data['username']
+            password = form.cleaned_data['password']
+
+            with connection.cursor() as cursor:
+                cursor.execute("SELECT role FROM system_user WHERE employee_id = %s AND username=%s AND password=%s", [Id, username, password])
+                user = cursor.fetchone()
+
+            if user:
+                role = user[0]
+                request.session['Id'] = Id
+                request.session['username'] = username
+                request.session['role'] = role
+
+                if role == 'HR':
+                    return redirect('hr_dashboard')
+                else:
+                    return redirect('employee_dashboard')
+
+            return HttpResponse("Invalid username or password")
+
+    else:
+        form = LoginForm()
+
+    return render(request, 'login.html', {'form': form})
+
+def logout_view(request):
+    request.session.flush()
+    return redirect('login')
+
+def hr_dashboard(request):
+    if request.session.get('role') == 'HR':
+        return render(request, 'hr_dashboard.html')
+    return HttpResponse("Unauthorized", status=403)
+
+def employee_dashboard(request):
+    if request.session.get('role') == 'Employee':
+        month_wise_attendance, month_wise_absence_dates, month_wise_extra_days = employee_dashboard_details(request)
+        request.session['month_wise_attendance'] = month_wise_attendance
+        request.session['month_wise_absence_dates'] = month_wise_absence_dates
+        request.session['month_wise_extra_days'] = month_wise_extra_days                    
         return render(request, 'employee_dashboard.html')
     return HttpResponse("Unauthorized", status=403)
 
 def monthly_attendance(request):
     selected_month = request.GET.get('month')
-    temp = request.session.get('month_wise_attendance', {})
+    temp , _ , _  = employee_dashboard_details(request)
     if selected_month:
         pass
         year = datetime.now().year
@@ -763,3 +767,135 @@ def request_display(request):
     }
     
     return render(request, 'request_display.html' , context=context)
+
+def get_leave_requests(employee_id, page=1, filters=None):
+    with connection.cursor() as cursor:
+        cursor.execute("SELECT * FROM absence_review WHERE employee_id = %s", [employee_id])
+        leave_requests = cursor.fetchall()
+        leave_requests_list = []
+        count = 0
+
+        for req in leave_requests:
+            count +=1
+            leave_requests_list.append({'id':count , 'date' : req[2] , 'explanation' : req[3] , 'status' : req[4] , 'leave_type' : req[5] , 'hr_response' : req[6]})
+        
+         # Filter the results if filters are provided.
+        if filters:
+            if 'leave_type' in filters and filters['leave_type']:
+                leave_requests_list = [r for r in leave_requests_list if r['leave_type'] == filters['leave_type']]
+            if 'status' in filters and filters['status']:
+                leave_requests_list = [r for r in leave_requests_list if r['status'] == filters['status']]
+        
+        paginator = Paginator(leave_requests_list, 5)
+        try:
+            leave_requests_page = paginator.page(page)
+        except PageNotAnInteger:
+            leave_requests_page = paginator.page(1)
+        except EmptyPage:
+            leave_requests_page = paginator.page(paginator.num_pages)
+        
+        return leave_requests_page
+
+
+def employee_detail(request):
+    employee_id = request.POST.get('search' , '')
+    print(employee_id)
+    # Fetch initial leave request data for the employee (e.g., first 5 entries)
+    leave_requests = get_leave_requests(employee_id, page=1)
+    employee_details = {}
+    with connection.cursor() as cursor:
+        cursor.execute("SELECT * FROM system_user WHERE employee_id = %s", [employee_id])
+        employee_data = cursor.fetchone()
+        print(employee_data)
+        employee_details['name'] = employee_data[1] + " " + employee_data[8] + " " + employee_data[9]
+        employee_details['photo_url'] = './download (1).jpeg'
+        employee_details['job_title'] = employee_data[6]
+        employee_details['email'] = employee_data[5]
+        employee_details['phone'] = employee_data[10]
+
+    context = {
+        'employee_id': employee_id,
+        'leave_requests': leave_requests,
+        'employee_details': employee_details
+        # Include any initial data you want to show
+    }
+    return render(request, 'employee_details.html' , context=context)
+
+@require_GET
+def search_suggestions(request ):
+    query = request.GET.get('query', '')
+    with connection.cursor() as cursor:
+        cursor.execute("SELECT * FROM system_user")
+        result = cursor.fetchall()  
+        suggestions = []
+        for row in result:
+            suggestions.append({'employee_id' :row[4] , 'name':row[1] ,'job_title': row[6]})
+        
+            # Filter the list based on the query (this is a simple case-insensitive search)
+    filtered = [
+        emp for emp in suggestions
+        if query.lower() in emp['name'].lower() or query.lower() in emp['job_title'].lower()
+    ]
+    return JsonResponse(filtered, safe=False)
+
+@require_GET
+def chart_data(request, employee_id):
+    approved , rejected = 0 , 0
+    with connection.cursor() as cursor:
+        cursor.execute("SELECT * FROM absence_review WHERE employee_id = %s", [employee_id])
+        leave_requests = cursor.fetchall()
+
+        for leave_request in leave_requests:
+            if leave_request[4] == "approved":
+                approved += 1
+            elif leave_request[4] == "rejected":
+                rejected += 1
+            
+        cursor.execute("select attendance from attendance_table where employee_id = %s" , [employee_id])
+
+        attendance_data = cursor.fetchone()
+        attendance_data = json.loads(attendance_data[0])
+
+
+        monthly_entry_count = defaultdict(int)
+
+        for data_Str , times in attendance_data.items():
+            month = datetime.strptime(data_Str, "%Y-%m-%d").strftime("%B")
+            monthly_entry_count[month] += 1
+        monthly_entry_count = dict(monthly_entry_count)
+
+        final_dict = []
+
+        for key , value in monthly_entry_count.items():
+            final_dict.append({'month' : key , 'present_days' : value})
+    # Example data structure:
+    data = {
+        'pie': {
+            'approved': approved,
+            'rejected': rejected,
+            'pending' : len(leave_requests) - (approved + rejected)
+        },
+        'bar': final_dict,
+        'total_requests': len(leave_requests),  # For the simple graph/image
+    }
+    # In practice, fetch these values based on your queries.
+    return JsonResponse(data)
+
+
+def leave_requests_ajax(request, employee_id):
+    # Extract filtering parameters and pagination from request.GET or request.POST
+    page = request.GET.get('page', 1)
+    # For example, filtering parameters can be: job_title, leave_type, etc.
+    filters = {
+        'status': request.GET.get('status', None),
+        'leave_type': request.GET.get('leave_type', None),
+        # Add other filters as needed
+    }
+    print(filters)
+    leave_requests = get_leave_requests(employee_id, page=page, filters=filters)
+    # Render a partial template that represents the leave request table
+    table_html = render_to_string('leave_request_table.html', {'leave_requests': leave_requests})
+    return JsonResponse({'table_html': table_html})
+
+
+
