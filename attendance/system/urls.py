@@ -1,8 +1,6 @@
-from django.urls import path
+from django.urls import path , include
 from django.conf import settings
 from django.conf.urls.static import static
-from django.contrib import admin
-from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 from .views import login_view, logout_view, hr_dashboard, employee_dashboard,monthly_attendance,absence_review , get_attendance , dashboard_data , user_management , delete_user , add_user , leave_management , leave_requests , update_leave_status , request_display , employee_detail , chart_data , leave_requests_ajax , search_suggestions
 
 urlpatterns = [
@@ -25,6 +23,8 @@ urlpatterns = [
     path('hr-dashboard/leave-management', leave_management, name='leave_management'),
     path('hr-dashboard/leave-requests', leave_requests, name='leave_requests'),
     path('hr-dashboard/update-leave-status', update_leave_status, name='update_leave_status'),
-] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+] 
 
-urlpatterns += staticfiles_urlpatterns()
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATICFILES_DIRS[0])

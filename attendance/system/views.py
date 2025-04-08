@@ -808,7 +808,7 @@ def employee_detail(request):
         employee_data = cursor.fetchone()
         print(employee_data)
         employee_details['name'] = employee_data[1] + " " + employee_data[8] + " " + employee_data[9]
-        employee_details['photo_url'] = './download (1).jpeg'
+        employee_details['photo_url'] = 'images/download (1).jpeg'
         employee_details['job_title'] = employee_data[6]
         employee_details['email'] = employee_data[5]
         employee_details['phone'] = employee_data[10]

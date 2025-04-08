@@ -1,4 +1,5 @@
-<!DOCTYPE html>
+{% load static %}
+<!DOCTYPE html
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -26,7 +27,6 @@
       font-weight: 600;
       margin-bottom: 0.5rem;
     }
-    
     /* Navbar Styles */
     .navbar-custom {
       background-color: #ffffff;
@@ -121,6 +121,15 @@
     .btn-primary:hover {
       background-color: #004494;
     }
+    .profile-photo {
+    padding: 15px;
+  }
+  .profile-photo img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 10px; /* optional: for rounded corners */
+  }
   </style>
 </head>
 <body>
@@ -146,9 +155,11 @@
   <div class="container mt-4">
     <div class="card employee-profile card-custom">
       <div class="row no-gutters">
-        <div class="col-md-4 profile-photo" style="background-image: url('{{ MEDIA_URL }}{{ employee_details.photo_url }}');">
-          <!-- Option: Use an <img> tag if needed -->
+        <div class="col-md-4 profile-photo p-3">
+          <img src="/static/{{ employee_details.photo_url }}" alt="Employee Photo" class="img-fluid w-100 h-100 object-fit-cover rounded">
         </div>
+        
+        
         <div class="col-md-8">
           <div class="card-body">
             <h4 class="card-title">{{ employee_details.name }}</h4>

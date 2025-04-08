@@ -139,10 +139,6 @@ DATABASES = {
 PROJECT_ROOT = os.path.join(os.path.dirname(__file__), '..')
 SITE_ROOT = PROJECT_ROOT
 
-
-MEDIA_ROOT = os.path.join(SITE_ROOT, 'media')
-MEDIA_URL = '/media/'
-
 STATIC_URL = 'static/'
 # Add this if it's not already present
 STATICFILES_DIRS = [
@@ -152,3 +148,5 @@ STATICFILES_DIRS = [
 # This is required in production (for `collectstatic` command)
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
+MEDIA_ROOT = os.path.join(SITE_ROOT, 'media')
+MEDIA_URL = '/media/'
