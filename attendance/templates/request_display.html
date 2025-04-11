@@ -5,28 +5,27 @@
   <meta charset="UTF-8">
   <title>Employee Dashboard</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <!-- Bootstrap CSS for a responsive layout -->
+  <!-- Bootstrap CSS -->
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="{% static 'request_display.css' %}">
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
   <!-- jQuery -->
   <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
   <!-- Popper.js -->
   <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
   <!-- Bootstrap JS -->
   <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-
-  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-  <link rel="stylesheet" href="{% static 'custom.css' %}">
-
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
-
-  <!-- Chart.js Library -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <!-- Chart.js adapter for date-fns (for time scale support) -->
-  <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
 </head>
 <body>
-  <nav class="navbar navbar-expand-lg navbar-light bg-light">
+  <!-- Navigation Bar -->
+  <nav class="navbar navbar-expand-lg navbar-light ">
     <a class="navbar-brand" href="{% url 'employee_dashboard' %}">Dashboard</a>
-    <div class="collapse navbar-collapse">
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNav">
       <ul class="navbar-nav ml-auto">
         <li class="nav-item">
           <a class="nav-link" href="{% url 'monthly_attendance' %}">Monthly Attendance</a>
@@ -35,44 +34,44 @@
           <a class="nav-link" href="{% url 'absence_review' %}">Absence Review</a>
         </li>
         <li class="nav-item">
-          <a class="nav-link" href="{% url 'logout' %}">Logout</a>
+          <a class="nav-link btn btn-outline-primary" href="{% url 'logout' %}">Logout</a>
         </li>
       </ul>
     </div>
   </nav>
 
+  <!-- Main Content -->
   {% block content %}
   <div class="container mt-4">
     <h2>Your Absence Request Timeline</h2>
   
-    {% comment %} Loop through monthly groups {% endcomment %}
     {% for month, requests in monthly_groups.items %}
       <h3 class="mt-5">{{ month }}</h3>
       
-      <!-- Desktop View: Grid Layout (shown on md and up) -->
+      <!-- Desktop View: Grid Layout (hidden on mobile) -->
       <div class="d-none d-md-block">
         <div class="row">
           {% for request in requests %}
             <div class="col-md-4">
               <div class="card mb-4 shadow-sm">
                 <div class="card-body">
-                  <h5 class="card-title">Request on {{ request.date|date:"M d, Y" }}</h5>
+                  <h5 class="card-title">Request on {{ request.request_date|date:"M d, Y" }}</h5>
                   <div class="timeline">
                     <!-- Request Under Review Section -->
-                    <div class="timeline-event review-event mb-3" style="cursor:pointer;" data-toggle="modal" data-target="#reviewModal{{ request.id }}">
+                    <div class="timeline-event review-event mb-3" data-toggle="modal" data-target="#reviewModal{{ request.id }}">
                       <div class="d-flex align-items-center">
                         <i class="fa fa-clock-o fa-lg text-primary mr-2"></i>
                         <strong>Request Under Review</strong>
                       </div>
                       <p class="mb-1"><small>Date: {{ request.date|date:"M d, Y" }}</small></p>
-                      <div class="explanation" id="explanation-{{ request.id }}">
+                      <div class="explanation">
                         <p class="mb-1"><small>Explanation: {{ request.explanation }}</small></p>
                       </div>
                       <p class="mb-0"><small>Type: {{ request.type_of_leave }}</small></p>
                     </div>
                     <hr>
                     <!-- HR Decision Section -->
-                    <div class="timeline-event decision-event" style="cursor:pointer;" data-toggle="modal" data-target="#decisionModal{{ request.id }}">
+                    <div class="timeline-event decision-event" data-toggle="modal" data-target="#decisionModal{{ request.id }}">
                       {% if request.hr_decision_status == "approved" %}
                         <div class="d-flex align-items-center">
                           <i class="fa fa-check fa-lg text-success mr-2"></i>
@@ -139,7 +138,7 @@
           {% endfor %}
         </div>
         
-        <!-- Pagination Controls for the Month -->
+        <!-- Pagination for Desktop -->
         {% if requests.has_other_pages %}
           <nav aria-label="Page navigation">
             <ul class="pagination justify-content-center">
@@ -163,7 +162,7 @@
         {% endif %}
       </div>
       
-      <!-- Mobile View: Carousel (shown on small screens) -->
+      <!-- Mobile View: Carousel (hidden on desktop) -->
       <div class="d-block d-md-none">
         <div id="carousel{{ month }}" class="carousel slide" data-ride="carousel">
           <div class="carousel-inner">
@@ -174,20 +173,20 @@
                     <h5 class="card-title">Request on {{ request.date|date:"M d, Y" }}</h5>
                     <div class="timeline">
                       <!-- Request Under Review Section -->
-                      <div class="timeline-event review-event mb-3" style="cursor:pointer;" data-toggle="modal" data-target="#reviewModal{{ request.id }}">
+                      <div class="timeline-event review-event mb-3" data-toggle="modal" data-target="#reviewModal{{ request.id }}">
                         <div class="d-flex align-items-center">
                           <i class="fa fa-clock-o fa-lg text-primary mr-2"></i>
                           <strong>Request Under Review</strong>
                         </div>
                         <p class="mb-1"><small>Date: {{ request.date|date:"M d, Y" }}</small></p>
-                        <div class="explanation" id="explanation-mobile-{{ request.id }}">
+                        <div class="explanation">
                           <p class="mb-1"><small>Explanation: {{ request.explanation }}</small></p>
                         </div>
                         <p class="mb-0"><small>Type: {{ request.type_of_leave }}</small></p>
                       </div>
                       <hr>
                       <!-- HR Decision Section -->
-                      <div class="timeline-event decision-event" style="cursor:pointer;" data-toggle="modal" data-target="#decisionModal{{ request.id }}">
+                      <div class="timeline-event decision-event" data-toggle="modal" data-target="#decisionModal{{ request.id }}">
                         {% if request.hr_decision_status == "approved" %}
                           <div class="d-flex align-items-center">
                             <i class="fa fa-check fa-lg text-success mr-2"></i>
@@ -226,8 +225,5 @@
     {% endfor %}
   </div>
   {% endblock %}
-  
-  <!-- Include jQuery, Popper.js, and Bootstrap JS (preferably right before the closing </body> tag) -->
-  <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
-  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>

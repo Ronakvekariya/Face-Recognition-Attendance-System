@@ -1,5 +1,4 @@
-{% load dict_extras %}
-
+{% load dict_extras datetime_extra %}
 
 <!DOCTYPE html>
 <html lang="en">
@@ -26,18 +25,67 @@
     .attendance-present { background-color: #d4edda; }  /* Light green */
     .attendance-absent { background-color: #f8d7da; }   /* Light red */
     .attendance-holiday { background-color: #fff3cd; }  /* Light yellow */
+
+    /* Navigation bar */
+    .navbar {
+      background: #f8f9fa;
+      color: #444;
+      padding: 10px 20px;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+      font-size: 18px;
+    }
+    .navbar-brand, .nav-link {
+      color: #0056b3 !important;
+      font-size: 19px;
+      padding-right: 15px;
+    }
+    .navbar-brand:hover, .nav-link:hover {
+      color: #004494 !important;
+    }
+    .btn-outline-primary {
+      color: #0056b3 !important;
+      font-size: 18px;
+    }
+    /* Headings */
+    h2, h3 {
+      color: #0056b3;
+      font-weight: 700;
+    }
+    .speacial {
+      color: #0056b3;
+    }
+    /* Legend Styling */
+    .legend span {
+      display: inline-block;
+      margin-right: 15px;
+      font-size: 16px;
+    }
+    .legend .badge {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      vertical-align: middle;
+      margin-right: 5px;
+    }
   </style>
 </head>
 <body>
-  <nav class="navbar navbar-expand-lg navbar-light bg-light">
+  <nav class="navbar navbar-expand-lg navbar-light">
     <a class="navbar-brand" href="{% url 'employee_dashboard' %}">Dashboard</a>
-    <div class="collapse navbar-collapse">
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" 
+      aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNav">
       <ul class="navbar-nav ml-auto">
         <li class="nav-item">
           <a class="nav-link" href="{% url 'absence_review' %}">Absence Review</a>
         </li>
         <li class="nav-item">
-          <a class="nav-link" href="{% url 'logout' %}">Logout</a>
+          <a class="nav-link" href="{% url 'request_display' %}">Request Display</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link btn btn-outline-primary" href="{% url 'logout' %}">Logout</a>
         </li>
       </ul>
     </div>
@@ -49,8 +97,8 @@
     <!-- Month Selection Form -->
     <form method="get" class="form-inline mb-4">
       {% csrf_token %}
-      <label class="mr-2" for="month">Select Month:</label>
-      <select id="month" name="month" class="form-control mr-2">
+      <label class="mr-2 speacial" for="month">Select Month:</label>
+      <select id="month" name="month" class="form-control mr-2 speacial">
         <option value="">-- Select a month --</option>
         {% for month in months %}
           <option value="{{ month }}" {% if month == selected_month %}selected{% endif %}>
@@ -61,19 +109,32 @@
       <button type="submit" class="btn btn-primary">Show Attendance</button>
     </form>
     
+    <!-- Legend for Attendance Colors -->
+    <div class="legend mb-4">
+      <span>
+        <span class="badge attendance-present">&nbsp;</span> Present
+      </span>
+      <span>
+        <span class="badge attendance-absent">&nbsp;</span> Absent
+      </span>
+      <span>
+        <span class="badge attendance-holiday">&nbsp;</span> Holiday
+      </span>
+    </div>
+    
     {% if selected_month %}
-      <h4>{{ selected_month }} {{ year }}</h4>
+      <h4 class="speacial">{{ selected_month }} {{ year }}</h4>
       <!-- Calendar Grid -->
-      <table class="table calendar-table">
+      <table class="table calendar-table speacial">
         <thead>
           <tr>
-            <th class="text-center">Sun</th>
-            <th class="text-center">Mon</th>
-            <th class="text-center">Tue</th>
-            <th class="text-center">Wed</th>
-            <th class="text-center">Thu</th>
-            <th class="text-center">Fri</th>
-            <th class="text-center">Sat</th>
+            <th class="text-center speacial">Sun</th>
+            <th class="text-center speacial">Mon</th>
+            <th class="text-center speacial">Tue</th>
+            <th class="text-center speacial">Wed</th>
+            <th class="text-center speacial">Thu</th>
+            <th class="text-center speacial">Fri</th>
+            <th class="text-center speacial">Sat</th>
           </tr>
         </thead>
         <tbody>
@@ -83,19 +144,12 @@
                 {% if day == 0 %}
                   <td></td>
                 {% else %}
-                  {% comment %}
-                    Construct the full date in format YYYY-MM-DD.
-                    Ensure day and month are zero-padded.
-                  {% endcomment %}
                   {% with day_str=day|stringformat:"02d" month_str=month_num|stringformat:"02d" %}
                   {% with full_date=year|stringformat:"d"|add:"-"|add:month_str|add:"-"|add:day_str %}
                   <td>
                     <div class="day-number">{{ day }}</div>
                     {% if attendance_data|get_item:full_date %}
                       {% with record=attendance_data|get_item:full_date %}
-                        {% comment %}
-                          Determine cell styling based on status.
-                        {% endcomment %}
                         {% if record.status == "Present" %}
                           <div class="attendance-present p-1">
                         {% elif record.status == "Absent" %}
@@ -105,7 +159,6 @@
                         {% else %}
                           <div class="p-1">
                         {% endif %}
-                            <small>Status: {{ record.status }}</small><br>
                             {% if record.InTime %}
                               {% if record.InTime|length > 0 and record.InTime.0 %}
                                 <small>InTime: {{ record.InTime.0 }}</small><br>
@@ -115,9 +168,21 @@
                             {% endif %}
                             {% if record.OutTime %}
                               {% if record.OutTime|length > 0 %}
-                                <small>OutTime: {{ record.OutTime|last }}</small>
+                                <small>OutTime: {{ record.OutTime|last }}</small><br>
                               {% else %}
-                                <small>OutTime: {{ record.OutTime }}</small>
+                                <small>OutTime: {{ record.OutTime }}</small><br>
+                              {% endif %}
+                            {% endif %}
+                            {% comment %} 
+                              If the status is Present, calculate and display the duration 
+                              (difference between OutTime and InTime).
+                            {% endcomment %}
+                            {% if record.status == "Present" and record.InTime and record.OutTime %}
+                              {% if record.InTime|length > 0 and record.OutTime|length > 0 %}
+                                <small>
+                                  Duration: 
+                                  {{ record.OutTime|last|time_diff:record.InTime.0 }}
+                                </small>
                               {% endif %}
                             {% endif %}
                           </div>

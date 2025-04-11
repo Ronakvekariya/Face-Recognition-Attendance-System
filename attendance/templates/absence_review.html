@@ -18,43 +18,82 @@
       margin-top: 20px; padding: 10px; border: 1px solid #ccc;
       border-radius: 4px; background-color: #f8f9fa; color: red;
     }
+        /* Navigation bar */
+  .navbar {
+    background: #f8f9fa; /* Navy blue */
+    color: #444; /* White text */
+    padding: 10px 20px; /* Padding for navbar */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+  }
+
+  .navbar-brand, .nav-link {
+      color: #0056b3 !important;
+      font-size: 18px;
+      padding-right: 15px; /* Space between brand and links */
+  }
+
+  .navbar-brand:hover, .nav-link:hover {
+      color: #004494 !important;
+    }
+
+
+  .btn-outline-primary {
+      color: #0056b3 !important;
+      font-size: 18px;
+    }
+    /* Headings */
+  h2, h3{
+    color: #0056b3; /* Navy blue */
+    font-weight: 700;
+  }
+
+  .speacial
+  {
+    color: #0056b3; /* Navy blue */
+  }
   </style>
 </head>
 <body>
-  <nav class="navbar navbar-expand-lg navbar-light bg-light">
+  <nav class="navbar navbar-expand-lg navbar-light ">
     <a class="navbar-brand" href="{% url 'employee_dashboard' %}">Dashboard</a>
-    <div class="collapse navbar-collapse">
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNav">
       <ul class="navbar-nav ml-auto">
         <li class="nav-item">
-          <a class="nav-link" href="{% url 'monthly_attendance' %}">Monthly Attendance</a>
+          <a class="nav-link " href="{% url 'monthly_attendance' %}">Monthly Attendance</a>
         </li>
         <li class="nav-item">
-          <a class="nav-link" href="{% url 'logout' %}">Logout</a>
+          <a class="nav-link" href="{% url 'request_display' %}">Request Display</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link btn btn-outline-primary" href="{% url 'logout' %}">Logout</a>
         </li>
       </ul>
     </div>
   </nav>
   
-  <div class="container mt-4">
+  <div class="container mt-4 speacial">
     <h2>Submit Absence Review</h2>
 
     <!-- Month Selection Form -->
     <form method="POST" class="form-inline mb-4" action="{% url 'absence_review' %}">
       {% csrf_token %}
-      <label class="mr-2" for="month">Select Month:</label>
-      <select id="month" name="month" class="form-control mr-2" required>
-        <option value="">-- Select a month --</option>
+      <label class="mr-2 speacial" for="month">Select Month:</label>
+      <select id="month" name="month" class="form-control mr-2 speacial" required>
+        <option value="" class="speacial">-- Select a month --</option>
         {% for month in months %}
           <option value="{{ month }}" {% if month == selected_month %}selected{% endif %}>
             {{ month }}
           </option>
         {% endfor %}
       </select>
-      <button type="submit" class="btn btn-primary">Show Absence Dates</button>
+      <button type="submit" class="btn btn-primary ">Show Absence Dates</button>
     </form>
 
     {% if message %}
-      <div class="message">
+      <div class="message speacial">
         {{ message }}
       </div>
     {% endif %}
@@ -65,22 +104,22 @@
         {% csrf_token %}
         <!-- Hidden field to pass the selected month to the view -->
         <input type="hidden" name="selected_month" value="{{ selected_month }}">
-        <div class="form-group">
+        <div class="form-group speacial">
           <label for="options">Absent Date</label>
           {{ form.date }}
         </div>
-        <div class="form-group">
+        <div class="form-group speacial">
           <label for="id_explanation">Explanation</label>
           {{ form.explanation }}
         </div>
-        <div class="form-group">
-          <label for="Leave_Type">Leave Category</label>
+        <div class="form-group speacial">
+          <label for="Leave_Type" class="speacial">Leave Category</label>
           {{ form.leave_type }}
         </div>
         <button type="submit" class="btn btn-primary">Submit Review</button>
       </form>
     {% else %}
-      <div class="form-group">
+      <div class="form-group speacial">
         <h3>Kindly first select the month</h3>
       </div>
     {% endif %}
