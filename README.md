@@ -1,55 +1,56 @@
 # Face Recognition Attendance System
 
-An end-to-end computer-vision attendance prototype using face detection, facial embeddings, database-backed identity matching, and attendance analytics.
+An end-to-end computer-vision attendance prototype that detects and recognizes faces, stores facial embeddings, marks attendance, and exposes attendance analysis through a web interface.
 
-## Pipeline
+## System architecture
 
 ```
-Camera image
-    ↓
+Camera / image
+      ↓
 Face detection
-    ↓
-Face embedding generation
-    ↓
-Embedding comparison
-    ↓
-Identity / Unknown classification
-    ↓
-Attendance database
-    ↓
-Analysis and system logs
+      ↓
+DeepFace / ArcFace embedding
+      ↓
+Cosine-distance matching
+      ↓
+Known / Unknown classification
+      ↓
+Attendance + event database
+      ↓
+Django / Streamlit analysis
 ```
 
-## Main capabilities
+## What it demonstrates
 
-- Detect multiple faces from camera images.
-- Generate facial embeddings with DeepFace / ArcFace.
-- Compare embeddings using cosine distance.
-- Identify known and unknown faces.
-- Record attendance events in MySQL.
-- Store attendance history for analysis.
-- Provide Streamlit-based analysis and system-log views.
+- Multi-face detection from camera images.
+- Facial embedding generation with DeepFace / ArcFace.
+- Identity matching using cosine distance.
+- Known and unknown face handling.
+- MySQL-backed employee and attendance records.
+- Attendance in/out tracking.
+- Unknown-face and error logging.
+- Web-based attendance analysis.
 
 ## Technology
 
 **Python · OpenCV · DeepFace · ArcFace · SciPy · MySQL · Django · Streamlit · Pandas · Plotly**
 
-## Repository structure
+## Core components
 
-| Component | Purpose |
+| Component | Role |
 | --- | --- |
-| `FaceRecognizer.py` | Face detection, embedding generation, and identity matching. |
-| `AttendanceMark.py` | Database-backed attendance processing. |
-| `DatabaseEmbeddingsInsert.py` | Generates embeddings and stores employee records. |
-| `demo.py` | End-to-end attendance flow. |
-| `attendance/` | Django application and analysis components. |
-| `pages/` | Streamlit analysis / system-log interfaces. |
+| `FaceRecognizer.py` | Detects faces, generates embeddings, and matches them against stored embeddings. |
+| `AttendanceMark.py` | Handles attendance persistence and database interaction. |
+| `DatabaseEmbeddingsInsert.py` | Generates employee embeddings and stores them in the database. |
+| `demo.py` | Connects the recognition workflow with attendance marking and logging. |
+| `attendance/` | Django application and supporting backend components. |
+| `pages/` | Streamlit views for attendance, analysis, and system logs. |
 
 ## Configuration
 
-Database credentials are loaded through environment variables defined in `.env.example`.
+The application expects database configuration through environment variables:
 
-```bash
+```text
 DB_HOST=localhost
 DB_USER=root
 DB_PASSWORD=your-local-password
@@ -57,28 +58,49 @@ DB_NAME=face_attendance_system
 DB_PORT=3306
 ```
 
-Never commit a real `.env` file.
+Start with `.env.example` and keep your real `.env` file out of version control.
 
-## Security and privacy
+## Data policy for this repository
 
-This repository is a portfolio representation of a facial-recognition system. Facial images, embeddings, employee records, and attendance information can be sensitive.
+The original development project used real face images and generated biometric embeddings. Those development artifacts are intentionally **not included in this portfolio repository**.
 
-Before sharing a production or real-world dataset publicly, replace it with synthetic/demo data and remove real biometric records and identifiers from the repository.
+For a public portfolio version, use synthetic or consented demo data and never commit:
 
-Credentials that were previously committed should be considered compromised even after rotation; rotating them prevents continued use of the old credential but does not erase historical commits.
+- face image datasets;
+- raw biometric embeddings;
+- employee contact information;
+- attendance databases;
+- unknown-person captures.
 
-## Engineering improvements
+This repository therefore documents the engineering and application code without publishing the underlying biometric dataset.
 
-The current prototype could be strengthened with:
+## Running locally
 
-- encrypted / access-controlled biometric storage;
-- explicit consent and retention policies;
-- threshold calibration and recognition benchmarks;
-- unit and integration tests;
-- stronger database transaction handling;
-- structured logging and monitoring;
-- containerized deployment;
-- separation of inference, persistence, and UI layers.
+A local setup requires your own MySQL database and a local face dataset/embedding store. The code is structured around the original project layout, so database schema and local data preparation are prerequisites.
+
+```bash
+python -m venv .venv
+pip install -r requirements.txt
+```
+
+Configure the database environment variables, prepare your local data, and run the relevant application entry point.
+
+## Engineering considerations
+
+Because this system handles biometric information, a production implementation would additionally require strong access control, encryption, retention/deletion policies, consent and governance controls, threshold calibration, audit logging, and security testing.
+
+Further engineering improvements include:
+
+- separating recognition, persistence, and UI layers;
+- replacing ad-hoc database queries with a dedicated repository/service layer;
+- adding automated tests and CI;
+- benchmarking recognition latency and accuracy;
+- making the recognition threshold configurable and evaluated on a validation set;
+- containerizing the application for reproducible deployment.
+
+## Portfolio context
+
+This project is one of the strongest examples in my portfolio of connecting an ML component to a larger software system: **computer vision → embedding generation → similarity matching → database persistence → attendance workflow → analytics**.
 
 ## Author
 

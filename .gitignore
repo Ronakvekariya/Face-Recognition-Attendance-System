@@ -1,16 +1,24 @@
+# Python
 __pycache__/
 *.py[cod]
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Virtual environments
 .venv/
 venv/
-env/
+
+# Local environment configuration
 .env
 .env.*
 !.env.example
-.ipynb_checkpoints/
 
-# Local biometric / application artifacts
+# Local biometric / runtime data
+sample_data/
+embeddings.json
 test.jpg
 result.jpg
-unknown_face.jpg
-embeddings.json
-sample_data/
+Unknow_face.jpg
+captured_image*.jpg
+outputs/
