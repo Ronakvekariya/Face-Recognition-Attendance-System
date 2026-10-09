@@ -1,235 +1,117 @@
-import mysql.connector
-from FaceRecognizer import Recongnizer
 import json
-import cv2
 import os
-from datetime import datetime
-from scipy.spatial.distance import cosine
 
-class AttendanceMark:
+import mysql.connector
+from deepface import DeepFace
+
+
+def get_db_config():
+    missing = [
+        name for name in ("DB_HOST", "DB_USER", "DB_PASSWORD", "DB_NAME")
+        if not os.getenv(name)
+    ]
+    if missing:
+        raise RuntimeError(
+            "Missing database environment variables: "
+            + ", ".join(missing)
+            + ". Copy .env.example to .env and configure the values."
+        )
+
+    return {
+        "host": os.getenv("DB_HOST", "localhost"),
+        "user": os.getenv("DB_USER", "root"),
+        "password": os.getenv("DB_PASSWORD"),
+        "database": os.getenv("DB_NAME"),
+        "port": int(os.getenv("DB_PORT", "3306")),
+    }
+
+
+class DatabaseEmebeddingsInsert:
     def __init__(self):
-        self.host = "localhost"
-        self.user = "root"
-        self.password = "Ronak@1234"
-        self.database = "face_attendance_system"
-        self.image_path = "./test.jpg"
-        print("Initializing AttendanceMark")
-        try:
-            self.connection = mysql.connector.connect(
-                host=self.host,
-                user=self.user,
-                password=self.password,
-                database=self.database
-            )
-            self.cursor = self.connection.cursor(buffered=True)
-            print("Connected to database")
-        except mysql.connector.Error as err:
-            print(f"Error: {err}")
-        except Exception as e:
-            print(f"An unexpected error occurred: {str(e)}")
-        print(self.connection)
-    
-    def CurrentDate(self):
-        time = datetime.now()
-        current_date = time.strftime("%Y-%m-%d")
-        current_time = time.strftime("%H:%M:%S")
-        return current_date, current_time
-    
-    def UnknownFace(self , embeddings = None , min_distance = 0.5):
-        Count = 0
-        query = "select * from log_table where problem_type = 'Unknown Face'"
+        config = get_db_config()
+        self.connection = mysql.connector.connect(**config)
+        self.cursor = None
+        self.face_folder_path = "./sample_data"
+        self.embeddings_file_path = "./embeddings.json"
+
+    def OpenEmbeddings(self):
+        """
+        To open the json embeddings file and return it
+        """
+        with open(self.embeddings_file_path, "r") as f:
+            embeddings = json.load(f)
+        return embeddings
+
+    def InsertEmbeddings(self):
+        """
+        Insert the embeddings into the database
+        """
+        lst_face_embeddings = []
+        models = ["VGG-Face", "Facenet", "Facenet512", "OpenFace", "DeepFace", "DeepID", "ArcFace", "Dlib", "SFace", "GhostFaceNet"]
+        first_name = input("Enter the first name")
+        last_name = input("Enter the last name")
+        middle_name = input("Enter the middle name")
+        email = input("Enter the email")
+        contact = input("Enter the contact")
+        position = input("Enter the position")
+        gender = input("Enter your gender")
+
+        embeddings_data = self.OpenEmbeddings()
         self.cursor = self.connection.cursor(buffered=True)
-        self.cursor.execute(query)
-        result = self.cursor.fetchall()
+        query = "select * from employee"
+        results = self.cursor.execute(query)
+        NumOfRows = self.cursor.rowcount
+        NumOfRows = NumOfRows + 1
 
-        if len(result) != 0:
-            for res in result:
-                if res[5] == '{}':
-                    continue
-                else:
-                    temp = json.loads(res[5])
-                    distance = cosine(embeddings, temp['embedding'])
-                    if distance < min_distance:
-                        min_distance = distance
-                        Count += 1
-            
-            return [True , Count]
-        else:
-            return [False , 0]
-            
+        flag = 0
 
+        for folder in os.listdir(self.face_folder_path):
+            print(folder)
+            if folder == first_name:
+                print("\n name is found")
+                image_path = os.path.join(self.face_folder_path, folder, "image1.jpg")
+                flag = 1
+                try:
+                    with open(image_path, "rb") as file:
+                        binary_data = file.read()
+                except Exception as e:
+                    image_path = image_path.replace(".jpg", ".png")
+                    print(image_path)
+                    with open(image_path, "rb") as file:
+                        binary_data = file.read()
+                    print(f"Error in reading the image : {e}")
+                if os.path.isdir(os.path.join("./sample_data", folder)):
+                    for image in os.listdir(os.path.join("./sample_data", folder)):
+                        if image.endswith(".jpg") or image.endswith(".jpeg") or image.endswith(".png"):
+                            embeddings = DeepFace.represent(os.path.join("./sample_data", folder, image), model_name=models[6], detector_backend="retinaface", align=True)
+                            lst_face_embeddings.append(embeddings[0]["embedding"])
+                print("\n embeddings are created")
+                embeddings_data[folder] = {"embeddings": lst_face_embeddings, "id": NumOfRows}
+                json_embeddings = json.dumps({"embeddings": lst_face_embeddings})
+                query = """
+                    INSERT INTO employee (
+                        id, name, middle_name, surname, contact, email_id, position, gender, face_embedding, photo
+                    ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                """
 
-    def MarkAttendance(self):
-        EmployeeId = []
-        count = 0
-        print("Running demo method")
-        rec = Recongnizer()
-        faces = rec.InAction()
-        # print("this is for printing faces" , faces)
-        if isinstance(faces, str):
-            print(faces)
-            print("Error in processing face")
-            with open(self.image_path, 'rb') as file:
-                binary_data = file.read()
-            query = "select * from log_table"
-            self.cursor.execute(query)
-            NumOfRows = self.cursor.rowcount
-            query = "insert into log_table (id , timestamp, problem_type , image , detail, face_embedding) values (%s, %s, %s, %s, %s , %s)"
-            self.cursor.execute(query, (NumOfRows + 1, datetime.now(), "Error", binary_data, faces, '{}'))
-            self.connection.commit()
-        else:
-            for face in faces:
-                count = count + 1
-                if type(face)!= str and face[0] != "Unknown":
-                    EmployeeId.append([ face[0] , face[3] , face[4] , None])
-                    query = f"SELECT * FROM employee WHERE id = {face[3]}"
-                    self.cursor.execute(query)
-                    result = self.cursor.fetchall()
-                    employee_id = result[0][0]
-                    print(employee_id)
-                    query = "select * from attendance_table where employee_id = %s"
-                    self.cursor.execute(query , (employee_id,))
-                    NumOfRows = self.cursor.rowcount
-                    result = self.cursor.fetchone()
+                values = (
+                    NumOfRows, first_name, middle_name, last_name, contact, email,
+                    position, gender, json_embeddings, binary_data
+                )
+                try:
+                    self.cursor.execute(query, values)
+                    self.connection.commit()
+                    with open("./embeddings.json", "w") as file:
+                        json.dump(embeddings_data, file, indent=4)
+                    print("\n query has been executed")
+                except Exception as e:
+                    print(f"Error in query execution: {e}")
 
-                    print(result)
-
-                    if NumOfRows > 0:
-                        attendace_json = json.loads(result[3])
-                        current_date, current_time = self.CurrentDate()
-                        if attendace_json.get(current_date) == None:
-                            attendace_json[current_date] = {
-                                "InTime": [current_time],
-                                "OutTime": []
-                            }
-                            query = "UPDATE attendance_table SET attendance = %s WHERE employee_id = %s"
-                            json_data = json.dumps(attendace_json)
-                            self.cursor.execute(query, (json_data, employee_id))
-                            self.connection.commit()
-                        else:
-                            print(len(attendace_json[current_date]["InTime"]) , "   " , len(attendace_json[current_date]["OutTime"]))
-                            if len(attendace_json[current_date]["InTime"]) == len(attendace_json[current_date]["OutTime"]):
-                                attendace_json[current_date]["InTime"].append(current_time)
-                                # json_data = {
-                                #     current_date: {
-                                #         "InTime": attendace_json[current_date]["InTime"] + [current_time],
-                                #         "OutTime": attendace_json[current_date]["OutTime"]
-                                #     }
-                                #     }   
-                                query = "UPDATE attendance_table SET attendance = %s WHERE employee_id = %s"
-                                json_data = json.dumps(attendace_json)
-                                self.cursor.execute(query, (json_data, employee_id))
-                                self.connection.commit()
-                            else:
-                                attendace_json[current_date]["OutTime"].append(current_time)
-                                # json_data = {
-                                #     current_date: {
-                                #         "InTime": attendace_json[current_date]["InTime"],
-                                #         "OutTime": attendace_json[current_date]["OutTime"] + [current_time]
-                                #     }
-                                # }
-                                query = "UPDATE attendance_table SET attendance = %s WHERE employee_id = %s"
-                                json_data = json.dumps(attendace_json)
-                                self.cursor.execute(query, (json_data, employee_id))
-                                self.connection.commit()
-                    elif NumOfRows == 0:
-                        current_date, current_time = self.CurrentDate()
-                        json_data = {
-                            current_date: {
-                                "InTime": [current_time],
-                                "OutTime": []
-                            }
-                        }
-                        json_data = json.dumps(json_data)
-                        query = "select * from attendance_table"
-                        self.cursor.execute(query)
-                        NumOfRowsTemp = self.cursor.rowcount
-                        NumOfRowsTemp += 1
-                        CurrentTimestamp = datetime.now()
-                        query = """INSERT INTO attendance_table (id, employee_id, timestamp, attendance)VALUES (%s, %s, %s, %s)"""
-                        self.cursor.execute(query , (NumOfRowsTemp, employee_id, CurrentTimestamp, json_data))
-                        self.connection.commit()
-                        print("Attendance Marked")
-                    else:
-                        print("Error")  
-                else :
-                    if face[0] == "Unknown":
-                        print("Unknown face detected")
-                                # Read the image in binary mode
-                        image = cv2.imread(self.image_path)
-                        x, y, w, h = face[2]['x'], face[2]['y'], face[2]['w'], face[2]['h']
-                        left, top, right, bottom = x, y, x + w, y + h
-                        height, width = image.shape[:2]
-                        print(f"Left: {left}, Top: {top}, Right: {right}, Bottom: {bottom}")
-                        cropped_image = image[top:bottom, left:right]
-                        unknown_face_image_path = "./Unknow_face.jpg"  
-                        try:
-                            cv2.imwrite(unknown_face_image_path, cropped_image)  
-                        except Exception as e:
-                            print(f"Error in saving the unknown person image : {e}")
-                        with open(unknown_face_image_path, 'rb') as file:
-                            binary_data = file.read()
-                        query = "select * from log_table"
-                        self.cursor.execute(query)
-                        NumOfRows = self.cursor.rowcount
-                        temp = face[4][0]["embedding"]
-                        json_temp = {"embedding": temp}
-                        temp = json.dumps(json_temp)
-                        query = "insert into log_table (id , timestamp, problem_type , image , detail , face_embedding) values (%s, %s, %s, %s, %s , %s)"
-                        self.cursor.execute(query, (NumOfRows + 1, datetime.now(), "Unknown Face", binary_data, "An unknown face was detected , Please check the person" , temp))
-                        self.connection.commit()
-                        EmployeeId.append([ face[0] , face[3] , face[4] , cropped_image])
-                        # os.remove(unknown_face_image_path)
-                    elif type(face) == str:
-                        print("Error in processing face")
-                        with open(self.image_path, 'rb') as file:
-                            binary_data = file.read()
-                        query = "select * from log_table"
-                        self.cursor.execute(query)
-                        NumOfRows = self.cursor.rowcount
-                        query = "insert into log_table (id , timestamp, problem_type , image , detail, face_embedding) values (%s, %s, %s, %s, %s)"
-                        self.cursor.execute(query, (NumOfRows + 1, datetime.now(), "Error", binary_data, face, '{}'))
-                        self.connection.commit()
-        
-        date = datetime.now().strftime('%Y-%m-%d')
-        # Query to get date from the database
-        query = "SELECT count_employee , date FROM current_employee_counter"
-        self.cursor.execute(query)
-        result = self.cursor.fetchone()
-        count = 0
-
-        if result:
-            count = result[0]
-            db_date = result[1].strftime('%Y-%m-%d')  # Convert database date to string
-            print(f"Database Date: {db_date}")
-            print(f"Current Date: {date}")
-
-
-            if db_date == date:
-                query = "UPDATE current_employee_counter SET count_employee = count_employee + 1 WHERE id = 1;"             
-                self.cursor.execute(query)
-                self.connection.commit()
-                count = result[0] + 1
-            else:
-                query = "UPDATE current_employee_counter SET count_employee = %s, date = %s WHERE id = %s"
-                values = (1, date, 1)
-                self.cursor.execute(query , values)
-                self.connection.commit()
-                count = 1
-        else:
-            print("No records found in the database.")
+        if flag == 0:
+            print("Either your data in avaiable at the defined repository or you have enter the wrong or misspelled name , please rectify that")
 
         self.cursor.close()
-        return [EmployeeId , self.connection , count]
-
-                    
 
 
-
-if __name__ == "__main__":
-    system = AttendanceMark()
-    system.UnknownFace()
-
-
-
-
+db = DatabaseEmebeddingsInsert()
+db.InsertEmbeddings()
