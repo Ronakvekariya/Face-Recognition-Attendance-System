@@ -1,12 +1,32 @@
-import mysql.connector
-import os
 import json
+import os
+
+import mysql.connector
 from deepface import DeepFace
+
+
+def get_db_config():
+    required = ("DB_HOST", "DB_USER", "DB_PASSWORD", "DB_NAME")
+    missing = [name for name in required if not os.getenv(name)]
+    if missing:
+        raise RuntimeError(
+            "Missing database environment variables: "
+            + ", ".join(missing)
+            + ". Copy .env.example to .env and configure the values."
+        )
+
+    return {
+        "host": os.getenv("DB_HOST"),
+        "user": os.getenv("DB_USER"),
+        "password": os.getenv("DB_PASSWORD"),
+        "database": os.getenv("DB_NAME"),
+        "port": int(os.getenv("DB_PORT", "3306")),
+    }
 
 
 class DatabaseEmebeddingsInsert:
     def __init__(self):
-        self.connection = mysql.connector.connect(host="localhost",user="root",password="Ronak@1234",database="face_attendance_system")
+        self.connection = mysql.connector.connect(**get_db_config())
         self.cursor = None
         self.face_folder_path = "./sample_data"
         self.embeddings_file_path = "./embeddings.json"

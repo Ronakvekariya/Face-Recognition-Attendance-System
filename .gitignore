@@ -1,22 +1,16 @@
-# Python cache
 __pycache__/
 *.py[cod]
-
-# Jupyter
-.ipynb_checkpoints/
-
-# Virtual envs
 .venv/
 venv/
-
-# Local environment config
+env/
 .env
 .env.*
 !.env.example
+.ipynb_checkpoints/
 
-# OS/editor files
-.DS_Store
-Thumbs.db
-
-# SQLite local DBs
-*.sqlite3
+# Local biometric / application artifacts
+test.jpg
+result.jpg
+unknown_face.jpg
+embeddings.json
+sample_data/
