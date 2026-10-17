@@ -87,11 +87,18 @@ Configure the database environment variables, prepare your local data, and run t
 
 Because this system handles biometric information, a production implementation would additionally require strong access control, encryption, retention/deletion policies, consent and governance controls, threshold calibration, audit logging, and security testing.
 
+Authentication notes:
+
+- new users created through the application are stored with Django-compatible password hashes;
+- legacy plaintext passwords are accepted only for migration and transparently upgraded after a successful login;
+- authenticated sessions store the employee ID, username, and role rather than the user's password;
+- the add-user preview does not display the entered password.
+
 Further engineering improvements include:
 
 - separating recognition, persistence, and UI layers;
 - replacing ad-hoc database queries with a dedicated repository/service layer;
-- adding automated tests and CI;
+- expanding automated tests and CI;
 - benchmarking recognition latency and accuracy;
 - making the recognition threshold configurable and evaluated on a validation set;
 - containerizing the application for reproducible deployment.

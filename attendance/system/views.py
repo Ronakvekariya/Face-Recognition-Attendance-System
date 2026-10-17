@@ -12,6 +12,7 @@ from django.views.decorators.http import require_POST ,require_GET
 from django.views.decorators.csrf import csrf_exempt
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.template.loader import render_to_string
+from .auth_utils import hash_password, verify_password_and_upgrade
 
 
 def employee_dashboard_details(request):
@@ -136,24 +137,42 @@ def login_view(request):
     if request.method == 'POST':
         form = LoginForm(request.POST)
         if form.is_valid():
-            Id = form.cleaned_data['Id']    
+            employee_id = form.cleaned_data['Id']
             username = form.cleaned_data['username']
             password = form.cleaned_data['password']
 
             with connection.cursor() as cursor:
-                cursor.execute("SELECT role FROM system_user WHERE employee_id = %s AND username=%s AND password=%s", [Id, username, password])
+                cursor.execute(
+                    "SELECT role, password FROM system_user "
+                    "WHERE employee_id = %s AND username = %s",
+                    [employee_id, username],
+                )
                 user = cursor.fetchone()
 
-            if user:
-                role = user[0]
-                request.session['Id'] = Id
+                authenticated = False
+                if user:
+                    role, stored_password = user
+                    authenticated, upgraded_hash = verify_password_and_upgrade(
+                        password,
+                        stored_password,
+                    )
+
+                    if upgraded_hash:
+                        cursor.execute(
+                            "UPDATE system_user SET password = %s "
+                            "WHERE employee_id = %s AND username = %s",
+                            [upgraded_hash, employee_id, username],
+                        )
+                        connection.commit()
+
+            if authenticated:
+                request.session['Id'] = employee_id
                 request.session['username'] = username
                 request.session['role'] = role
 
                 if role == 'HR':
                     return redirect('hr_dashboard')
-                else:
-                    return redirect('employee_dashboard')
+                return redirect('employee_dashboard')
 
             return HttpResponse("Invalid username or password")
 
@@ -516,6 +535,7 @@ def add_user(request):
             userid = form.cleaned_data['userid']
             username = form.cleaned_data['username']
             password = form.cleaned_data['password']
+            password_hash = hash_password(password)
             role = form.cleaned_data['role']
             email = form.cleaned_data['email']
             job_title = form.cleaned_data['job_title']
@@ -523,15 +543,40 @@ def add_user(request):
             mobile_number = form.cleaned_data['mobile_number']
             middlename = form.cleaned_data['middlename']
             surname = form.cleaned_data['surname']
+
             with connection.cursor() as cursor:
-                cursor.execute("INSERT INTO system_user (username, password, role , employee_id, email , job_title , job_position , middlename , surname , mobilenumber) VALUES (%s, %s, %s, %s , %s , %s , %s, %s , %s , %s)", [username, password, role , userid , email , job_title , job_position , middlename , surname , mobile_number])
+                cursor.execute(
+                    "INSERT INTO system_user "
+                    "(username, password, role, employee_id, email, job_title, "
+                    "job_position, middlename, surname, mobilenumber) "
+                    "VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
+                    [
+                        username,
+                        password_hash,
+                        role,
+                        userid,
+                        email,
+                        job_title,
+                        job_position,
+                        middlename,
+                        surname,
+                        mobile_number,
+                    ],
+                )
                 connection.commit()
                 return redirect('user_management')
         else:
-            return render(request, 'add_user.html' , {'form' : form , 'status' : "Invalid form data"})
-    # else:
-        # form = AddUser()
-    return render(request, 'add_user.html', {'form': AddUser(), 'status': "Form is Empty"})
+            return render(
+                request,
+                'add_user.html',
+                {'form': form, 'status': "Invalid form data"},
+            )
+
+    return render(
+        request,
+        'add_user.html',
+        {'form': AddUser(), 'status': "Form is Empty"},
+    )
 
 def get_leave_data():
     pass
