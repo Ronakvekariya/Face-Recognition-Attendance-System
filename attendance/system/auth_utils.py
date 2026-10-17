@@ -5,6 +5,11 @@ from typing import Optional, Tuple
 from django.contrib.auth.hashers import check_password, make_password
 
 
+def hash_password(raw_password: str) -> str:
+    """Return a Django-compatible password hash."""
+    return make_password(raw_password)
+
+
 def verify_password_and_upgrade(
     raw_password: str,
     stored_password: str,
