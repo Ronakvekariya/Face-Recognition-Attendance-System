@@ -9,7 +9,6 @@ import json
 from collections import defaultdict
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST ,require_GET
-from django.views.decorators.csrf import csrf_exempt
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.template.loader import render_to_string
 from .auth_utils import hash_password, verify_password_and_upgrade
@@ -337,8 +336,9 @@ def absence_review(request):
 #         return render(request, 'user_management.html', context=context)
 #     return HttpResponse("Unauthorized", status=403)
 
+@require_POST
 def delete_user(request):
-    user_id = request.GET.get('user_id')
+    user_id = request.POST.get('user_id')
     context = {"hr_count": request.session.get("hr_count"), "employee_count": request.session.get("employee_count"), "employee_users": request.session.get("hr_users"), "hr_users": request.session.get("employee_users")}
     if user_id:
         user_id = int(user_id)
@@ -656,7 +656,7 @@ def leave_requests(request):
             "leave_type": leave_type,
         })
 
-@csrf_exempt  # Use this if you're not using CSRF tokens; otherwise, ensure CSRF tokens are included
+@require_POST
 def update_leave_status(request):
     if request.method == "POST":
         try:
