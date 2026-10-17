@@ -64,8 +64,6 @@ Start with `.env.example` and keep your real `.env` file out of version control.
 
 The original development project used real face images and generated biometric embeddings. Those development artifacts are intentionally **not included in this portfolio repository**.
 
-For a public portfolio version, use synthetic or consented demo data and never commit:
-
 - face image datasets;
 - raw biometric embeddings;
 - employee contact information;
