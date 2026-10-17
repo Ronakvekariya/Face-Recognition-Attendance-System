@@ -12,7 +12,7 @@ from django.views.decorators.http import require_POST ,require_GET
 from django.views.decorators.csrf import csrf_exempt
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.template.loader import render_to_string
-from django.contrib.auth.hashers import check_password, make_password
+from .auth_utils import verify_password_and_upgrade
 
 
 def employee_dashboard_details(request):
@@ -152,19 +152,18 @@ def login_view(request):
                 authenticated = False
                 if user:
                     role, stored_password = user
-                    authenticated = check_password(password, stored_password)
+                    authenticated, upgraded_hash = verify_password_and_upgrade(
+                        password,
+                        stored_password,
+                    )
 
-                    # Transparently upgrade accounts created by the legacy
-                    # plaintext-password implementation.
-                    if not authenticated and stored_password == password:
-                        upgraded_hash = make_password(password)
+                    if upgraded_hash:
                         cursor.execute(
                             "UPDATE system_user SET password = %s "
                             "WHERE employee_id = %s AND username = %s",
                             [upgraded_hash, employee_id, username],
                         )
                         connection.commit()
-                        authenticated = True
 
             if authenticated:
                 request.session['Id'] = employee_id
