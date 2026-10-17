@@ -9,10 +9,10 @@ import json
 from collections import defaultdict
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST ,require_GET
-from django.views.decorators.csrf import csrf_exempt
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.template.loader import render_to_string
 from .auth_utils import hash_password, verify_password_and_upgrade
+from .access import hr_required
 
 
 def employee_dashboard_details(request):
