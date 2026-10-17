@@ -1,6 +1,19 @@
 import unittest
 
-from attendance.system.auth_utils import hash_password, verify_password_and_upgrade
+from django.conf import settings
+
+
+if not settings.configured:
+    settings.configure(
+        PASSWORD_HASHERS=[
+            "django.contrib.auth.hashers.PBKDF2PasswordHasher",
+        ]
+    )
+
+from attendance.system.auth_utils import (  # noqa: E402
+    hash_password,
+    verify_password_and_upgrade,
+)
 
 
 class AuthenticationHelperTests(unittest.TestCase):
