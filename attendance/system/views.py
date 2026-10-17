@@ -535,7 +535,7 @@ def add_user(request):
             userid = form.cleaned_data['userid']
             username = form.cleaned_data['username']
             password = form.cleaned_data['password']
-            password_hash = make_password(password)
+            password_hash = hash_password(password)
             role = form.cleaned_data['role']
             email = form.cleaned_data['email']
             job_title = form.cleaned_data['job_title']
