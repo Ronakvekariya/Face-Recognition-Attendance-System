@@ -45,7 +45,7 @@ class AddUser(forms.Form):
     email = forms.EmailField(label='Email')
     role = forms.ChoiceField(
         label='Role',
-        choices=[('employee', 'Employee'), ('hr', 'HR')],
+        choices=[('Employee', 'Employee'), ('HR', 'HR')],
         widget=forms.Select(attrs={'class': 'form-control'})
     )
     job_title = forms.ChoiceField(
