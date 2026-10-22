@@ -83,6 +83,10 @@ pip install -r requirements.txt
 
 Configure the database environment variables, prepare your local data, and run the relevant application entry point.
 
+## Sample Demo
+
+[▶ Watch the full demo on YouTube](https://youtu.be/OmJW2CaqQpI)
+
 ## Engineering considerations
 
 Because this system handles biometric information, a production implementation would additionally require strong access control, encryption, retention/deletion policies, consent and governance controls, threshold calibration, audit logging, and security testing.
