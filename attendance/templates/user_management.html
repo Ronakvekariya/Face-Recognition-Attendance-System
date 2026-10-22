@@ -154,7 +154,7 @@
                     <p class="card-text"><strong>Job Title:</strong> {{ user.6 }}</p>
                     <p class="card-text"><strong>Job Position:</strong> {{ user.7 }}</p>
                     <!-- Delete button triggers modal confirmation -->
-                    <button type="button" class="btn btn-sm btn-danger delete-user-btn" data-toggle="modal" data-target="#confirmDeleteModal" data-url="{% url 'delete_user' %}?user_id={{ user.4 }}" data-username="{{ user.1 }}" data-userid="{{ user.4 }}" data-userrole="HR">
+                    <button type="button" class="btn btn-sm btn-danger delete-user-btn" data-toggle="modal" data-target="#confirmDeleteModal" data-username="{{ user.1 }}" data-userid="{{ user.4 }}" data-userrole="HR">
                       <i class="fas fa-trash-alt"></i>
                     </button>
                   </div>
@@ -213,7 +213,7 @@
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-        <a id="confirmDeleteBtn" href="#" class="btn btn-danger">Delete</a>
+        <form id="confirmDeleteForm" method="post" action="{% url 'delete_user' %}" class="d-inline">{% csrf_token %}<input type="hidden" name="user_id" id="confirmDeleteUserId"><button type="submit" class="btn btn-danger">Delete</button></form>
       </div>
     </div>
   </div>
@@ -223,11 +223,10 @@
   $(function () {
     // Delete button click handler to populate modal
     $('.delete-user-btn').on('click', function () {
-      var deleteUrl = $(this).data('url');
-      var username = $(this).data('username');
       var userid = $(this).data('userid');
+      var username = $(this).data('username');
       var userrole = $(this).data('userrole');
-      $('#confirmDeleteBtn').attr('href', deleteUrl);
+      $('#confirmDeleteUserId').val(userid);
       $('#deleteModalMessage').text('Are you sure you want to delete ' + userrole + ' user "' + username + '" (ID: ' + userid + ')?');
     });
   });
