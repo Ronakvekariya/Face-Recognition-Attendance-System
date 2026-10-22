@@ -9,7 +9,6 @@ import json
 from collections import defaultdict
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST ,require_GET
-from django.views.decorators.csrf import csrf_exempt
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.template.loader import render_to_string
 from .auth_utils import hash_password, verify_password_and_upgrade
@@ -337,8 +336,11 @@ def absence_review(request):
 #         return render(request, 'user_management.html', context=context)
 #     return HttpResponse("Unauthorized", status=403)
 
+@require_POST
 def delete_user(request):
-    user_id = request.GET.get('user_id')
+    if request.session.get('role') != 'HR':
+        return HttpResponse("Unauthorized", status=403)
+    user_id = request.POST.get('user_id')
     context = {"hr_count": request.session.get("hr_count"), "employee_count": request.session.get("employee_count"), "employee_users": request.session.get("hr_users"), "hr_users": request.session.get("employee_users")}
     if user_id:
         user_id = int(user_id)
@@ -583,6 +585,8 @@ def get_leave_data():
     # return result
 
 def leave_management(request):
+    if request.session.get('role') != 'HR':
+        return HttpResponse("Unauthorized", status=403)
     leave_type = ['Sick Leave' , 'Paid Leave' , 'Informed Leave']
     job_positions = ['Fresher' , 'Junior Developer' , 'Senior Developer' ,'Managing Director' , 'Deputy General Manager' ]
     job_title = ['.NET Developer' , 'ERP' , 'HRMS' , 'Data Scientist' , 'React Developer' , 'DBA']
@@ -608,6 +612,8 @@ def leave_management(request):
     return render(request, 'leave_management.html' , context=result)
 
 def leave_requests(request):
+    if request.session.get('role') != 'HR':
+        return HttpResponse("Unauthorized", status=403)
     if request.method == "POST":
         leave_type = request.POST.get("leave_type" , "")
         job_position = request.POST.get("job_position", "")
@@ -656,8 +662,10 @@ def leave_requests(request):
             "leave_type": leave_type,
         })
 
-@csrf_exempt  # Use this if you're not using CSRF tokens; otherwise, ensure CSRF tokens are included
+@require_POST
 def update_leave_status(request):
+    if request.session.get('role') != 'HR':
+        return JsonResponse({'success': False, 'error': 'Unauthorized'}, status=403)
     if request.method == "POST":
         try:
             # Parse the JSON data from the request body
@@ -804,6 +812,8 @@ def get_leave_requests(employee_id, page=1, filters=None):
 
 
 def employee_detail(request):
+    if request.session.get('role') != 'HR':
+        return HttpResponse("Unauthorized", status=403)
     employee_id = request.POST.get('search' , '')
     print(employee_id)
     # Fetch initial leave request data for the employee (e.g., first 5 entries)
@@ -829,6 +839,9 @@ def employee_detail(request):
 
 @require_GET
 def search_suggestions(request ):
+    if request.session.get('role') != 'HR':
+        return JsonResponse({'error': 'Unauthorized'}, status=403)
+
     query = request.GET.get('query', '')
     with connection.cursor() as cursor:
         cursor.execute("SELECT * FROM system_user")
@@ -846,6 +859,9 @@ def search_suggestions(request ):
 
 @require_GET
 def chart_data(request, employee_id):
+    if request.session.get('role') != 'HR':
+        return JsonResponse({'error': 'Unauthorized'}, status=403)
+
     approved , rejected = 0 , 0
     with connection.cursor() as cursor:
         cursor.execute("SELECT * FROM absence_review WHERE employee_id = %s", [employee_id])
@@ -889,6 +905,8 @@ def chart_data(request, employee_id):
 
 
 def leave_requests_ajax(request, employee_id):
+    if request.session.get('role') != 'HR':
+        return JsonResponse({'error': 'Unauthorized'}, status=403)
     # Extract filtering parameters and pagination from request.GET or request.POST
     page = request.GET.get('page', 1)
     # For example, filtering parameters can be: job_title, leave_type, etc.
